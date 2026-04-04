@@ -1,168 +1,64 @@
-# ⚖️ DharmaAI – Jurisprudential Legal Chatbot
-### Indian Knowledge System (IKS) × Modern Indian Law × LLM
+# ⚖️ DharmaAI: Indian Legal Assistant
+
+DharmaAI is an advanced, full-stack legal reasoning chatbot designed exclusively for the intricacies of Indian jurisprudence. Powered by the ultra-fast Groq API (Llama 3) and a custom Retrieval-Augmented Generation (RAG) pipeline built with ChromaDB, it instantly analyzes case laws, statutes, and ancient Indian Knowledge Systems (IKS).
+
+Designed for legal education and legal professionals, DharmaAI bridges the gap between modern state laws and traditional Dharmic principles in a sleek, production-ready interface.
 
 ---
 
-## 🏗️ Architecture
+## ✨ Key Features
+- **🔍 High-Speed RAG Pipeline:** Contextual search over the Indian Penal Code, Bhartiya Nyaya Sanhita, foundational Constitutional Law cases, and core legal texts using ChromaDB.
+- **🧠 Advanced Legal Reasoning:** Built-in templates for IRAC (Issue, Rule, Application, Conclusion) and IDAR (Issue, Dharma, Application of Danda, Resolution) methodologies.
+- **⚡ Intent-Based Routing:** The LangChain backend automatically detects the user's intent (Case Law, Statute Lookup, Definition, IRAC) and routes the prompt via specialized LLM chains.
+- **🏺 IKS Integration:** Maps modern constitutional doctrines back to historical texts like the *Arthashastra* and *Dharmashastra*.
+- **📱 Premium "Dharma Logic" UI:** A beautifully designed React frontend using Lucide icons, glass-morphism, and responsive CSS.
 
-```
-User → React Frontend → FastAPI Backend
-                              ├─ Intent Router (LangChain + Groq)
-                              ├─ Specialized Chains (Definition / CaseLaw / Statute / IRAC / General)
-                              ├─ RAG Pipeline (FAISS + HuggingFace Embeddings)
-                              └─ SQLite DB (Glossary / Cases / Statutes / History)
-```
+## 🛠️ Technology Stack
+### Frontend
+- **React.js & Vite:** High-performance UI rendering.
+- **Vanilla CSS:** Custom design tokens mapped to the "Dharma Logic" color palette.
+- **Lucide React:** Premium scalable SVG iconography.
+
+### Backend
+- **Python / FastAPI:** Lightning-fast async REST API.
+- **Groq API & Llama-3.3-70b:** State-of-the-art LLM inference.
+- **LangChain:** Agentic routing and prompt templating.
+- **ChromaDB & SQLite:** Persistent vector storage and chat history memory.
 
 ---
 
-## ⚙️ Backend Setup
+## 🚀 Getting Started Locally
 
-### 1. Prerequisites
-- Python 3.10+
-- Free Groq API key → https://console.groq.com
+### 1. Clone the Repository
+```bash
+git clone https://github.com/ram-49-kaps/DharmaAI.git
+cd DharmaAI
+```
 
-### 2. Install dependencies
-
+### 2. Run the Backend (FastAPI)
 ```bash
 cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
+
+# Create a .env file and add your GROQ_API_KEY
+echo "GROQ_API_KEY=your_key_here" > .env
+
+# Run the server
+uvicorn app:app --port 8000
 ```
 
-### 3. Set up environment
-
-```bash
-cp .env.example .env
-# Edit .env → add your GROQ_API_KEY
-```
-
-### 4. Run the server
-
-```bash
-uvicorn app:app --reload --port 8000
-```
-
-The server will automatically:
-- Create SQLite tables
-- Seed 10 glossary terms, 5 landmark cases, 6 statutes
-- Build the FAISS vector index (first run takes ~30s)
-
-### 5. Verify
-
-Open http://localhost:8000/docs → Swagger UI with all endpoints
-
----
-
-## 🎨 Frontend Setup
-
-### 1. Prerequisites
-- Node.js 18+
-
-### 2. Install and run
-
+### 3. Run the Frontend (React)
 ```bash
 cd frontend
 npm install
 npm start
 ```
 
-Opens at http://localhost:3000 (proxies API to backend at :8000)
+*The application will now be running on `http://localhost:3000`.*
 
 ---
 
-## 🔌 API Endpoints
-
-| Method | Endpoint              | Description                    |
-|--------|-----------------------|--------------------------------|
-| POST   | /api/chat             | Main chat (intent + RAG)       |
-| GET    | /api/glossary/{term}  | Look up a legal term           |
-| GET    | /api/glossary         | List all glossary terms        |
-| GET    | /api/search?q=        | Search cases & statutes        |
-| GET    | /api/templates        | Get IRAC/IDAR templates        |
-| GET    | /api/health           | Health check                   |
-
-### Chat Request/Response (exact schema)
-
-```json
-// POST /api/chat
-Request:  { "message": "string", "history": [{"role":"user","content":"string"}] }
-Response: { "intent": "string", "answer": "string", "sources": [{"title":"string","type":"case|statute|glossary","citation":"string"}] }
-```
-
----
-
-## 🧠 Intent Routing
-
-| Intent           | Triggered when asking about…         |
-|------------------|--------------------------------------|
-| definition       | What is mens rea / Dharma / IRAC?    |
-| case_law         | Kesavananda Bharati / Maneka Gandhi  |
-| statute          | IPC / Constitution / Contract Act    |
-| legal_reasoning  | Apply IRAC to this scenario…         |
-| general          | Everything else (RAG + memory)       |
-
----
-
-## 📚 IKS Content Included
-
-- **Dharma** – foundational Indian legal principle
-- **Danda** – Kautilyan theory of sanction
-- **Puruṣārtha** – situational ethics framework (Daya Krishna)
-- **Arthashastra** – Kautilya's legal treatise (c. 3rd century BCE)
-- **Dharmaśāstras** – Manu, Yājñavalkya, Nārada
-- **IDAR Template** – Dharma-based IRAC variant
-
----
-
-## 🔧 Troubleshooting
-
-| Problem | Fix |
-|---------|-----|
-| GROQ_API_KEY error | Add key to backend/.env |
-| FAISS build slow | Normal on first run; cached after |
-| Frontend can't reach backend | Ensure backend runs on :8000 |
-| Module not found | Run `pip install -r requirements.txt` |
-
----
-
-## 📁 Project Structure
-
-```
-legal_chatbot/
-├── backend/
-│   ├── app.py                  # FastAPI main app
-│   ├── requirements.txt
-│   ├── .env.example
-│   ├── chains/
-│   │   ├── router.py           # Intent detection
-│   │   ├── definition.py       # Definition chain
-│   │   ├── caselaw.py          # Case law chain
-│   │   ├── statute.py          # Statute chain
-│   │   ├── irac.py             # IRAC reasoning chain
-│   │   └── general_qa.py       # RAG + memory chain
-│   ├── services/
-│   │   ├── llm.py              # Groq LLM (cached)
-│   │   └── rag.py              # FAISS pipeline
-│   ├── db/
-│   │   ├── database.py         # SQLite init
-│   │   └── seed.py             # Seed data
-│   ├── models/
-│   │   └── schemas.py          # Pydantic models (shared contract)
-│   └── data/
-│       └── legal_docs.txt      # Source documents for RAG
-└── frontend/
-    ├── package.json
-    ├── public/index.html
-    └── src/
-        ├── App.js              # Root component + state
-        ├── App.css             # Full dark theme
-        ├── index.js
-        ├── components/
-        │   ├── ChatWindow.jsx
-        │   ├── MessageBubble.jsx
-        │   ├── InputBox.jsx
-        │   ├── Sidebar.jsx
-        │   ├── SourcesPanel.jsx
-        │   └── TemplatesPanel.jsx
-        └── services/
-            └── api.js          # Axios API (single source of truth)
-```
+## 👨‍💻 Created By
+**Ram Kapadia** - Artificial Intelligence & Full-Stack Developer
