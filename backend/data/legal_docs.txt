@@ -1,0 +1,39 @@
+DOCUMENT: Indian Contract Act 1872 - Overview
+CITATION: Act No. 9 of 1872
+Section 10 defines a valid contract as an agreement made by free consent of parties competent to contract, for a lawful consideration and with a lawful object. Section 11 defines competency – every person of sound mind who is not a minor (18+ years) and not disqualified by law. Section 13 defines free consent – absence of coercion, undue influence, fraud, misrepresentation, or mistake. Section 2(h) defines a contract as an agreement enforceable by law. Offer (proposal) under Section 2(a) is when one person signifies willingness to do or abstain from doing anything with a view to obtaining the assent of that other person. Acceptance under Section 2(b) is when the person to whom the proposal is made signifies assent thereto.
+
+DOCUMENT: Indian Penal Code 1860 - Key Offences
+CITATION: Act No. 45 of 1860
+Section 300 defines murder as culpable homicide amounting to murder when done with intention of causing death, or with intention of causing bodily injury sufficient in the ordinary course to cause death. Section 299 defines culpable homicide. Section 376 defines rape. Section 378 defines theft as dishonest intention to take movable property out of possession without consent. Section 415 defines cheating. Section 420 penalises cheating and dishonestly inducing delivery of property. Section 302 prescribes death penalty or life imprisonment for murder.
+
+DOCUMENT: Constitution of India 1950 - Fundamental Rights
+CITATION: Part III, Articles 12-35
+Article 12 defines State for Part III purposes. Article 13 makes laws inconsistent with fundamental rights void. Article 14 guarantees equality before law. Article 15 prohibits discrimination on grounds of religion, race, caste, sex, or place of birth. Article 19 guarantees freedom of speech, assembly, movement, and profession. Article 21 guarantees right to life and personal liberty. Article 32 grants right to constitutional remedies (heart and soul of constitution per Dr. Ambedkar). Article 22 protects against arbitrary arrest.
+
+DOCUMENT: Kesavananda Bharati v. State of Kerala - Full Analysis
+CITATION: AIR 1973 SC 1461
+Facts: Swami Kesavananda Bharati challenged the Kerala Land Reforms Amendment Act 1969. The broader constitutional question was whether Article 368 gave Parliament unlimited power to amend the Constitution including Fundamental Rights. Issue: Can Parliament amend the Basic Structure of the Constitution? Rule: Article 368 allows Parliament to amend any provision but implied limitations exist. Application: 13-judge bench deliberated for 68 days. Seven judges held Basic Structure cannot be abrogated. Conclusion: Parliament can amend but not destroy the Basic Structure. Basic Structure includes supremacy of constitution, republican and democratic form, secular character, separation of powers, federal character, judicial review, free and fair elections. Principle: Constitutional amendments altering basic structure are unconstitutional.
+
+DOCUMENT: Maneka Gandhi v. Union of India - Full Analysis  
+CITATION: AIR 1978 SC 597
+Facts: Maneka Gandhi's passport was impounded under Passports Act 1967 without giving reasons. She challenged under Article 21. Issue: Whether procedure under Article 21 must be fair and reasonable, not just any procedure established by law. Rule: Article 21 - No person deprived of life/liberty except by procedure established by law. Application: Court overruled A.K. Gopalan's narrow interpretation. Held that Articles 14, 19, 21 are not watertight compartments – they form a golden triangle. Any law depriving life/liberty must be just, fair, reasonable. Conclusion: Passport impoundment violated Article 21 as no opportunity to be heard was given. Principle: Right to travel abroad is part of personal liberty. Due process must be substantive and procedural.
+
+DOCUMENT: Dharma in Indian Jurisprudence
+CITATION: Dharmashastra Tradition
+Dharma is the foundational concept of Indian jurisprudence encompassing moral law, righteous duty, and cosmic order. Manusmriti (c. 200 BCE - 200 CE) codified Dharma for different social roles. Yajnavalkyasmriti (c. 100-300 CE) provided more refined legal principles including inheritance and judicial procedure. Naradasmriti focused on procedural law. Dharma as law has four sources: Sruti (Vedas), Smriti (tradition), Sadachara (good custom), Atmatushti (self-satisfaction). Dharma is distinguished from positive law in that it is cosmic and ethical, not merely state-enforced. Daya Krishna's situational ethics argues Dharma is contextual – what is right depends on role, time, and circumstance (Purusha, Desa, Kala).
+
+DOCUMENT: Kautilya's Arthashastra - Legal Provisions
+CITATION: c. 3rd century BCE, Chandragupta Maurya era
+Book I discusses the king's duties and qualities of a just ruler. Book II covers departments of government and economic administration. Book III deals with civil law: contracts (Chapter 1), rules regarding property (Chapter 2), inheritance (Chapter 3). Book IV covers suppression of criminals. Danda (punishment) is the king's coercive instrument to enforce Dharma. Four types of Danda: verbal censure (vak-danda), fine (artha-danda), corporal punishment (deha-danda), death penalty (vadha-danda). Arthashastra anticipates separation of judiciary from executive. The Dharmastha (civil judge) and Kantakasodhana (criminal court) were distinct institutions. Arthashastra Chapter 3.10 on Witnesses: testimony must be consistent, free from bias, given under oath.
+
+DOCUMENT: Vishaka v. State of Rajasthan - Full Analysis
+CITATION: AIR 1997 SC 3011
+Facts: Bhanwari Devi, a social worker in Rajasthan, was gang-raped while trying to prevent a child marriage. Women's groups filed PIL. Issue: Whether sexual harassment at workplace violates fundamental rights of women under Articles 14, 15, 19, 21. Rule: Articles 14, 15, 19(1)(g), 21; CEDAW provisions. Application: Court noted absence of domestic law on workplace sexual harassment. Applied international conventions directly. Held workplace sexual harassment violates fundamental rights. Issued binding Vishaka Guidelines pending legislation. Conclusion: Employers must have complaints mechanism; conduct sexual harassment awareness; provide safe work environment. Principle: Judicial guidelines can substitute for absent legislation when fundamental rights are at stake.
+
+DOCUMENT: Bharatiya Nyaya Sanhita 2023 - Overview
+CITATION: Act No. 45 of 2023
+Replaces Indian Penal Code 1860. Enacted as part of criminal law reforms alongside Bharatiya Nagarik Suraksha Sanhita (replaces CrPC) and Bharatiya Sakshya Adhiniyam (replaces Evidence Act). Key changes: Section 103 = IPC 302 (murder); Section 63 = IPC 375 (rape); New Section 111 on organised crime; Section 113 on terrorism; Section 69 criminalises sexual intercourse by deceitful promise of marriage. Removed sedition (IPC 124A) as standalone offence. Introduced community service as punishment. Time-bound trials mandated. Electronic records given equal status to physical documents.
+
+DOCUMENT: IRAC Method - Legal Reasoning Framework
+CITATION: Legal Education Standard
+IRAC stands for Issue, Rule, Application, Conclusion. Issue: Identify the precise legal question at stake. State it as a question. Rule: State the relevant legal rule, statute, or precedent that applies. Application: Apply the rule to the specific facts. This is the core of legal reasoning – compare facts to rule elements, identify similarities and distinctions. Conclusion: State the likely outcome based on the application. Variations include CRAC (Conclusion-Rule-Application-Conclusion) and CREAC (Conclusion-Rule-Explanation-Application-Conclusion). IRAC is used in moot courts, legal opinions, and judicial judgments. Indian Supreme Court judgments typically follow: Facts – Issues – Arguments – Legal Framework – Analysis – Conclusion.

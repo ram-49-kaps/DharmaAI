@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+env/
+.env
+
+# Node
+node_modules/
+build/
+npm-debug.log
+
+# Databases
+*.db
+chroma_db/
+*.sqlite
+*.sqlite3
+
+# OS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
