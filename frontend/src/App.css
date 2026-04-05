@@ -628,6 +628,122 @@ body {
   margin: 0 auto;
 }
 
+/* Context Token Indicator */
+.context-wrapper {
+  position: relative;
+  width: 100%;
+}
+.context-indicator {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-align: right;
+  padding-right: 55px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.context-indicator:hover {
+  color: var(--secondary);
+}
+
+/* Context Popup (Dark IDE Theme) */
+.context-popup {
+  position: absolute;
+  bottom: 25px;
+  right: 50px;
+  width: 290px;
+  background-color: #0e1117;
+  border: 1px solid #30363d;
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  color: #c9d1d9;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  animation: fadeIn 0.2s ease-out;
+  z-index: 100;
+}
+
+.context-popup-header {
+  margin-bottom: 0.8rem;
+}
+.context-title {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 0.4rem;
+}
+.context-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: #8b949e;
+  margin-bottom: 0.4rem;
+}
+.progress-bar-bg {
+  width: 100%;
+  height: 4px;
+  background-color: #21262d;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 0.4rem;
+}
+.progress-bar-fill {
+  height: 100%;
+  background-color: #2f81f7;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+.reserved-note {
+  font-size: 0.6rem;
+  color: #8b949e;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.reserved-dash {
+  color: #1f6feb;
+  letter-spacing: -1px;
+}
+
+.context-section {
+  margin-bottom: 0.85rem;
+}
+.context-section strong {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 0.35rem;
+}
+.context-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  color: #8b949e;
+  margin-bottom: 0.2rem;
+}
+.context-val {
+  color: #c9d1d9;
+  font-variant-numeric: tabular-nums;
+}
+
+.compact-btn {
+  width: 100%;
+  background-color: #21262d;
+  border: 1px solid #30363d;
+  color: #c9d1d9;
+  border-radius: var(--radius-sm);
+  padding: 0.4rem;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  font-family: inherit;
+  margin-top: 0.2rem;
+}
+.compact-btn:hover {
+  background-color: #30363d;
+}
+
 .quick-prompts {
   display: flex;
   flex-wrap: wrap;

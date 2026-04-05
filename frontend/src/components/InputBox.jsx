@@ -8,8 +8,9 @@ const QUICK_PROMPTS = [
   "What is mens rea?",
 ];
 
-export default function InputBox({ onSend, loading, prefillText, onPrefillUsed }) {
+export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, messages = [], onCompactContext }) {
   const [text, setText] = useState("");
+  const [showContext, setShowContext] = useState(false);
   const textareaRef = useRef(null);
 
   // Handle prefill from templates
@@ -42,7 +43,13 @@ export default function InputBox({ onSend, loading, prefillText, onPrefillUsed }
     if (ta) { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; }
   };
 
-  const estimatedTokens = Math.ceil(text.trim().length / 4);
+  const inputTokens = Math.ceil(text.trim().length / 4);
+  const historyString = messages.map(m => m.content).join(" ");
+  const historyTokens = Math.ceil(historyString.length / 4);
+  const systemTokens = 850; // Average injection prompt tokens
+  const totalUsed = systemTokens + historyTokens + inputTokens;
+  const totalAvailable = 8192; // Llama 3 context
+  const percentUsed = Math.min(((totalUsed / totalAvailable) * 100), 100).toFixed(1);
 
   return (
     <div className="input-area">
@@ -71,8 +78,52 @@ export default function InputBox({ onSend, loading, prefillText, onPrefillUsed }
         </button>
       </div>
 
-      <div style={{ fontSize: "0.65rem", color: "var(--text-muted)", textAlign: "right", paddingRight: "55px" }}>
-        {estimatedTokens > 0 ? `Estimated Input: ~${estimatedTokens} tokens` : "Llama-3 Output Capacity: ~2k tokens"}
+      <div className="context-wrapper">
+        <div className="context-indicator" onClick={() => setShowContext(!showContext)}>
+          {inputTokens > 0 ? `Estimated Input: ~${inputTokens} tokens` : "Llama-3 Output Capacity: ~2k tokens"}
+        </div>
+        
+        {showContext && (
+          <div className="context-popup">
+            <div className="context-popup-header">
+              <span className="context-title">Context Window</span>
+              <div className="context-stats">
+                <span>{(totalUsed/1000).toFixed(1)}K / {(totalAvailable/1000).toFixed(1)}K tokens</span>
+                <span>{percentUsed}%</span>
+              </div>
+              <div className="progress-bar-bg">
+                <div className="progress-bar-fill" style={{ width: `${percentUsed}%` }}></div>
+              </div>
+              <div className="reserved-note">
+                <span className="reserved-dash">////</span> Reserved for response
+              </div>
+            </div>
+
+            <div className="context-section">
+              <strong>System</strong>
+              <div className="context-row">
+                <span>System Instructions</span>
+                <span className="context-val">{Math.min((systemTokens/totalAvailable)*100, 100).toFixed(1)}%</span>
+              </div>
+            </div>
+
+            <div className="context-section">
+              <strong>User Context</strong>
+              <div className="context-row">
+                <span>Messages ({messages.length})</span>
+                <span className="context-val">{Math.min((historyTokens/totalAvailable)*100, 100).toFixed(1)}%</span>
+              </div>
+              <div className="context-row">
+                <span>Current Input</span>
+                <span className="context-val">{Math.min((inputTokens/totalAvailable)*100, 100).toFixed(1)}%</span>
+              </div>
+            </div>
+
+            <button className="compact-btn" onClick={() => { onCompactContext(); setShowContext(false); }}>
+              Compact Conversation
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

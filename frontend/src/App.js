@@ -173,6 +173,8 @@ export default function App() {
               loading={loading}
               prefillText={prefillText}
               onPrefillUsed={() => setPrefillText("")}
+              messages={messages}
+              onCompactContext={handleNewChat}
             />
           </>
         )}
