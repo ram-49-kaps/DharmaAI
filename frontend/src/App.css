@@ -1037,7 +1037,19 @@ body {
   }
   
   .welcome h2 { font-size: 1.45rem; }
-  .welcome-features { grid-template-columns: 1fr; }
+  .welcome-features { 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 0.5rem;
+  }
+  .feature-card {
+    padding: 0.8rem 0.4rem;
+  }
+  .feature-icon {
+    font-size: 1.25rem;
+  }
+  .feature-label {
+    font-size: 0.68rem;
+  }
   
   .panel-page { padding: 1.25rem 1rem; }
 }
