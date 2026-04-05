@@ -13,7 +13,7 @@ export default function ChatWindow({ messages, loading, onFeatureClick }) {
   return (
     <div className="chat-window">
       {messages.length === 0 ? (
-        <div className="welcome-screen">
+        <div className="welcome">
           <div className="welcome-brand"><Logo size={48} color="white" /></div>
           <h2>Welcome to <span>DharmaAI</span></h2>
           <p>
