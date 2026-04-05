@@ -1,5 +1,5 @@
 import React from "react";
-import { Sparkles, MessageSquare, Library, BrainCircuit, Scale, Pencil, Trash2, Download, X } from "lucide-react";
+import { Plus, MessageSquare, Library, BrainCircuit, Scale, Pencil, Trash2, Download, X } from "lucide-react";
 
 export default function Sidebar({ 
   chats, 
@@ -47,7 +47,7 @@ export default function Sidebar({
 
       {/* New Chat */}
       <button className="new-chat-btn" onClick={onNewChat}>
-        <span><Sparkles size={18} /></span> New Consultation
+        <span><Plus size={18} /></span> New Consultation
       </button>
 
       {/* Navigation */}

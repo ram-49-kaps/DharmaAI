@@ -616,14 +616,16 @@ body {
   40% { transform: scale(1); opacity: 1; }
 }
 
-/* ── Input Area ────────────────────────────────────────────────── */
+/* ── Input Area (ChatGPT Style, Floating, 1-Column) ────────────────── */
 .input-area {
-  padding: 0.75rem 2rem 1.25rem;
-  border-top: 1px solid var(--border);
-  background: var(--bg);
+  padding: 0 1rem 1.5rem;
+  background: transparent;
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
+  max-width: 860px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .quick-prompts {
@@ -674,7 +676,7 @@ body {
   transition: border-color 0.2s, box-shadow 0.2s;
   max-height: 180px;
   overflow-y: auto;
-  box-shadow: var(--shadow-xs);
+  box-shadow: var(--shadow-sm);
 }
 .input-textarea:focus {
   border-color: var(--primary);
