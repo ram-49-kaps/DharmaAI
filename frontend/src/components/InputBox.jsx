@@ -79,8 +79,19 @@ export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, 
       </div>
 
       <div className="context-wrapper">
-        <div className="context-indicator" onClick={() => setShowContext(!showContext)}>
-          {inputTokens > 0 ? `Estimated Input: ~${inputTokens} tokens` : "Llama-3 Output Capacity: ~2k tokens"}
+        <div className="context-badge" onClick={() => setShowContext(!showContext)} title="View Token Memory Usage">
+          <svg viewBox="0 0 36 36" className="context-donut">
+            <path
+              className="donut-bg"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+            <path
+              className="donut-fill"
+              strokeDasharray={`${percentUsed}, 100`}
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+          </svg>
+          <span className="context-pct">{Math.floor(percentUsed)}%</span>
         </div>
         
         {showContext && (

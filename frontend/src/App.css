@@ -652,16 +652,51 @@ body {
   position: relative;
   width: 100%;
 }
-.context-indicator {
-  font-size: 0.65rem;
-  color: var(--text-muted);
-  text-align: right;
-  padding-right: 55px;
+.context-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: #031123;
+  border: 1px solid #7cb1ff;
+  border-radius: 99px;
+  padding: 0.2rem 0.55rem;
   cursor: pointer;
-  transition: color 0.15s;
+  float: right;
+  margin-right: 55px;
+  margin-top: 0.25rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: all 0.2s;
 }
-.context-indicator:hover {
-  color: var(--secondary);
+.context-badge:hover {
+  background-color: #0b2240;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  transform: translateY(-1px);
+}
+
+.context-donut {
+  width: 14px;
+  height: 14px;
+  transform: rotate(-90deg);
+}
+.donut-bg {
+  fill: none;
+  stroke: #2e435e;
+  stroke-width: 4;
+}
+.donut-fill {
+  fill: none;
+  stroke: #bec6ce;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.3s ease;
+}
+
+.context-pct {
+  color: #929ba5;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 /* Context Popup (Dark IDE Theme) */
