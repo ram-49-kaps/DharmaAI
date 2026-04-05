@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, MessageSquare, Library, BrainCircuit, Scale, Pencil, Trash2, Download, X } from "lucide-react";
+import { Plus, MessageSquare, Library, BrainCircuit, Scale, Pencil, Trash2, Download, X, Check, X as XIcon } from "lucide-react";
 
 export default function Sidebar({ 
   chats, 
@@ -16,19 +16,33 @@ export default function Sidebar({
   onClose
 }) {
   
-  const handleRename = (e, chat) => {
+  const [editingChatId, setEditingChatId] = React.useState(null);
+  const [editTitle, setEditTitle] = React.useState("");
+  const [deleteConfirmId, setDeleteConfirmId] = React.useState(null);
+
+  const startRename = (e, chat) => {
     e.stopPropagation();
-    const newTitle = prompt("What would you like to rename this chat?", chat.title);
-    if (newTitle && newTitle.trim()) {
-      onRenameChat(chat.id, newTitle.trim());
-    }
+    setEditingChatId(chat.id);
+    setEditTitle(chat.title);
+    setDeleteConfirmId(null);
   };
 
-  const handleDelete = (e, chatId) => {
-    e.stopPropagation();
-    if (window.confirm("Are you sure you want to delete this chat forever?")) {
-      onDeleteChat(chatId);
+  const submitRename = () => {
+    if (editTitle.trim()) {
+      onRenameChat(editingChatId, editTitle.trim());
     }
+    setEditingChatId(null);
+  };
+
+  const handleEditKeyDown = (e) => {
+    if (e.key === "Enter") submitRename();
+    if (e.key === "Escape") setEditingChatId(null);
+  };
+
+  const confirmDelete = (e, chatId) => {
+    e.stopPropagation();
+    onDeleteChat(chatId);
+    setDeleteConfirmId(null);
   };
 
   return (
@@ -71,20 +85,50 @@ export default function Sidebar({
       <div className="sidebar-section">
         <p className="sidebar-section-title">Recent Chats</p>
         {chats.length === 0 && <p className="sidebar-empty">No queries yet</p>}
-        {chats.map((chat) => (
-          <div 
-            key={chat.id} 
-            className="history-item"
-            style={activeChatId === chat.id ? { background: "rgba(26,35,126,0.08)", color: "var(--primary)", fontWeight: "600" } : {}}
-            onClick={() => onSwitchChat(chat.id)}
-          >
-            <span className="history-title">{chat.title}</span>
-            <div className="chat-actions">
-              <button className="chat-action-btn" title="Rename" onClick={(e) => handleRename(e, chat)}><Pencil size={14} /></button>
-              <button className="chat-action-btn" title="Delete" onClick={(e) => handleDelete(e, chat.id)}><Trash2 size={14} /></button>
+        {chats.map((chat) => {
+          const isEditing = editingChatId === chat.id;
+          const isDeleting = deleteConfirmId === chat.id;
+
+          return (
+            <div 
+              key={chat.id} 
+              className="history-item"
+              style={activeChatId === chat.id ? { background: "rgba(26,35,126,0.08)", color: "var(--primary)", fontWeight: "600" } : {}}
+              onClick={() => {
+                if (!isEditing) onSwitchChat(chat.id);
+              }}
+            >
+              {isEditing ? (
+                <input
+                  type="text"
+                  autoFocus
+                  className="sidebar-edit-input"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  onBlur={submitRename}
+                  onKeyDown={handleEditKeyDown}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              ) : (
+                <span className="history-title">{chat.title}</span>
+              )}
+
+              <div className="chat-actions">
+                {isDeleting ? (
+                  <>
+                    <button className="chat-action-btn confirm-del" title="Confirm Delete" onClick={(e) => confirmDelete(e, chat.id)}><Check size={14} color="var(--danger)" /></button>
+                    <button className="chat-action-btn" title="Cancel" onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(null); }}><XIcon size={14} /></button>
+                  </>
+                ) : (
+                  <>
+                    <button className="chat-action-btn" title="Rename" onClick={(e) => startRename(e, chat)}><Pencil size={14} /></button>
+                    <button className="chat-action-btn" title="Delete" onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(chat.id); setEditingChatId(null); }}><Trash2 size={14} /></button>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Footer */}

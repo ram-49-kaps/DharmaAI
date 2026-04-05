@@ -301,12 +301,31 @@ body {
   cursor: pointer;
   font-size: 0.75rem;
   opacity: 0.6;
-  padding: 2px;
+  padding: 3px;
   border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .chat-action-btn:hover {
   opacity: 1;
-  background: rgba(0,0,0,0.05);
+  background: rgba(0,0,0,0.06);
+}
+.confirm-del:hover {
+  background: rgba(198,40,40,0.1);
+}
+
+.sidebar-edit-input {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--secondary);
+  color: var(--text);
+  border-radius: var(--radius-xs);
+  padding: 0.2rem 0.4rem;
+  font-size: 0.8rem;
+  outline: none;
+  font-family: inherit;
+  min-width: 0;
 }
 
 /* Footer */
