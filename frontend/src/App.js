@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Menu, Scale } from "lucide-react";
 import "./App.css";
 import Sidebar from "./components/Sidebar";
 import ChatWindow from "./components/ChatWindow";
@@ -18,6 +18,7 @@ export default function App() {
   const [activePanel, setActivePanel] = useState("chat");
   const [prefillText, setPrefillText] = useState("");
   const [error, setError] = useState("");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const activeChat = chats.find(c => c.id === activeChatId) || chats[0];
   const messages = activeChat.messages;
@@ -94,6 +95,7 @@ export default function App() {
   const switchChat = (id) => {
     setActiveChatId(id);
     setActivePanel("chat");
+    setIsMobileMenuOpen(false);
   };
 
   const deleteChat = (id) => {
@@ -131,20 +133,37 @@ export default function App() {
 
   return (
     <div className="app-layout">
+      {/* Mobile Backdrop */}
+      {isMobileMenuOpen && (
+        <div className="mobile-backdrop" onClick={() => setIsMobileMenuOpen(false)} />
+      )}
+
       <Sidebar
         chats={chats}
         activeChatId={activeChatId}
-        onNewChat={handleNewChat}
+        onNewChat={() => { handleNewChat(); setIsMobileMenuOpen(false); }}
         onSwitchChat={switchChat}
         onDeleteChat={deleteChat}
         onRenameChat={renameChat}
         onExport={handleExport}
         activePanel={activePanel}
-        setActivePanel={setActivePanel}
+        setActivePanel={(panel) => { setActivePanel(panel); setIsMobileMenuOpen(false); }}
         isExportDisabled={messages.length === 0}
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
       />
 
       <main className="main-area">
+        {/* Mobile Header (Hidden on Desktop) */}
+        <div className="mobile-header">
+          <button className="menu-btn" onClick={() => setIsMobileMenuOpen(true)}>
+            <Menu size={24} />
+          </button>
+          <div className="mobile-header-brand">
+            <Scale size={20} color="var(--primary)" />
+            <strong>DharmaAI</strong>
+          </div>
+        </div>
         {activePanel === "chat" && (
           <>
             <ChatWindow messages={messages} loading={loading} onFeatureClick={handleUseTemplate} />

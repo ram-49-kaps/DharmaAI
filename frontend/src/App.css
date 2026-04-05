@@ -109,6 +109,19 @@ body {
   flex-direction: column;
   overflow: hidden;
   background: var(--bg);
+  position: relative;
+}
+
+.mobile-header {
+  display: none;
+}
+
+.mobile-backdrop {
+  display: none;
+}
+
+.mobile-close-btn {
+  display: none;
 }
 
 .panel-page {
@@ -617,7 +630,11 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding-bottom: 0.25rem;
 }
+.quick-prompts::-webkit-scrollbar { height: 0; }
 .quick-btn {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -938,10 +955,89 @@ body {
 }
 
 @media (max-width: 640px) {
-  .sidebar { display: none; }
-  .chat-window { padding: 1rem; }
+  .app-layout { position: relative; }
+  
+  .mobile-backdrop {
+    display: block;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    backdrop-filter: blur(2px);
+    animation: fadeIn 0.2s ease-out;
+  }
+  
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 1000;
+    width: 280px;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 2px 0 12px rgba(0,0,0,0.15);
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .mobile-close-btn {
+    display: flex;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 0.4rem;
+    cursor: pointer;
+    margin-left: auto;
+  }
+
+  .mobile-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.25rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow-xs);
+    z-index: 900;
+  }
+  .menu-btn {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+  }
+  .mobile-header-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary);
+  }
+  .mobile-header-brand strong {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    letter-spacing: 0.02em;
+  }
+
+  .chat-window { padding: 1rem 1rem 4rem 1rem; }
   .input-area { padding: 0.5rem 0.75rem 0.75rem; }
-  .quick-prompts { display: none; }
-  .bubble-wrapper { max-width: 100%; }
+  
+  .bubble-wrapper { max-width: 100%; gap: 0.5rem; }
+  .avatar { width: 32px; height: 32px; font-size: 0.95rem; }
+  .bubble { padding: 0.85rem 1rem; font-size: 0.9rem; }
+  
+  .quick-prompts { 
+    flex-wrap: nowrap; 
+    padding-bottom: 0.5rem; 
+  }
+  .quick-btn {
+    flex-shrink: 0;
+  }
+  
+  .welcome h2 { font-size: 1.45rem; }
   .welcome-features { grid-template-columns: 1fr; }
+  
+  .panel-page { padding: 1.25rem 1rem; }
 }

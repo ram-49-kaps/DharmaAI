@@ -1,5 +1,5 @@
 import React from "react";
-import { Sparkles, MessageSquare, Library, BrainCircuit, Scale, Pencil, Trash2, Download } from "lucide-react";
+import { Sparkles, MessageSquare, Library, BrainCircuit, Scale, Pencil, Trash2, Download, X } from "lucide-react";
 
 export default function Sidebar({ 
   chats, 
@@ -11,7 +11,9 @@ export default function Sidebar({
   onExport, 
   activePanel, 
   setActivePanel,
-  isExportDisabled
+  isExportDisabled,
+  isOpen,
+  onClose
 }) {
   
   const handleRename = (e, chat) => {
@@ -30,7 +32,7 @@ export default function Sidebar({
   };
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? "open" : ""}`}>
       {/* Logo */}
       <div className="sidebar-logo">
         <div className="logo-icon"><Scale size={28} color="white" /></div>
@@ -38,6 +40,9 @@ export default function Sidebar({
           <div className="logo-title">DharmaAI</div>
           <div className="logo-sub">Indian Legal Assistant</div>
         </div>
+        <button className="mobile-close-btn" onClick={onClose}>
+          <X size={20} />
+        </button>
       </div>
 
       {/* New Chat */}
