@@ -1,5 +1,6 @@
 import React from "react";
 import { Plus, MessageSquare, Library, BrainCircuit, Scale, Pencil, Trash2, Download, X, Check, X as XIcon } from "lucide-react";
+import Logo from "./Logo";
 
 export default function Sidebar({ 
   chats, 
@@ -49,7 +50,7 @@ export default function Sidebar({
     <aside className={`sidebar ${isOpen ? "open" : ""}`}>
       {/* Logo */}
       <div className="sidebar-logo">
-        <div className="logo-icon"><Scale size={28} color="white" /></div>
+        <div className="logo-icon"><Logo size={28} color="white" /></div>
         <div className="logo-text">
           <div className="logo-title">DharmaAI</div>
           <div className="logo-sub">Indian Legal Assistant</div>

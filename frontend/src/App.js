@@ -7,6 +7,7 @@ import InputBox from "./components/InputBox";
 import SourcesPanel from "./components/SourcesPanel";
 import TemplatesPanel from "./components/TemplatesPanel";
 import { sendMessage } from "./services/api";
+import Logo from "./components/Logo";
 
 export default function App() {
   const [chats, setChats] = useState([
@@ -160,7 +161,7 @@ export default function App() {
             <Menu size={24} />
           </button>
           <div className="mobile-header-brand">
-            <Scale size={20} color="var(--primary)" />
+            <Logo size={20} color="var(--primary)" />
             <strong>DharmaAI</strong>
           </div>
         </div>

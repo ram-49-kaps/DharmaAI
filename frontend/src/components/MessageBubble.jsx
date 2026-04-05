@@ -1,6 +1,7 @@
 import React from "react";
 import { Scale, ScrollText, BookOpen, FileText, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import Logo from "./Logo";
 
 const INTENT_LABELS = {
   definition:      { label: "Definition",      color: "var(--intent-definition)" },
@@ -27,7 +28,7 @@ export default function MessageBubble({ message }) {
     <div className={`bubble-wrapper ${isUser ? "user-wrapper" : "assistant-wrapper"}`}>
       {/* Avatar */}
       <div className={`avatar ${isUser ? "user-avatar" : "ai-avatar"}`}>
-        {isUser ? <User size={18} /> : <Scale size={18} />}
+        {isUser ? <User size={18} /> : <Logo size={18} color="white" />}
       </div>
 
       <div className="bubble-content">

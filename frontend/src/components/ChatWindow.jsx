@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { Scale, ScrollText, Landmark, BookOpen, BrainCircuit, Flower2 } from "lucide-react";
 import MessageBubble from "./MessageBubble";
+import Logo from "./Logo";
 
 export default function ChatWindow({ messages, loading, onFeatureClick }) {
   const bottomRef = useRef(null);
@@ -11,9 +12,9 @@ export default function ChatWindow({ messages, loading, onFeatureClick }) {
 
   return (
     <div className="chat-window">
-      {messages.length === 0 && (
-        <div className="welcome">
-          <div className="welcome-brand"><Scale size={48} color="white" /></div>
+      {messages.length === 0 ? (
+        <div className="welcome-screen">
+          <div className="welcome-brand"><Logo size={48} color="white" /></div>
           <h2>Welcome to <span>DharmaAI</span></h2>
           <p>
             Your intelligent legal research companion — grounded in the
@@ -44,15 +45,15 @@ export default function ChatWindow({ messages, loading, onFeatureClick }) {
             </div>
           </div>
         </div>
+      ) : (
+        messages.map((msg, i) => (
+          <MessageBubble key={i} message={msg} />
+        ))
       )}
 
-      {messages.map((msg, i) => (
-        <MessageBubble key={i} message={msg} />
-      ))}
-
       {loading && (
-        <div className="bubble-wrapper assistant-wrapper">
-          <div className="avatar ai-avatar"><Scale size={20} color="white" /></div>
+        <div className="message assistant">
+          <div className="avatar ai-avatar"><Logo size={20} color="white" /></div>
           <div className="bubble ai-bubble typing-bubble">
             <span className="dot" /><span className="dot" /><span className="dot" />
           </div>
