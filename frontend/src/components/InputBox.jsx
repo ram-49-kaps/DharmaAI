@@ -42,6 +42,8 @@ export default function InputBox({ onSend, loading, prefillText, onPrefillUsed }
     if (ta) { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; }
   };
 
+  const estimatedTokens = Math.ceil(text.trim().length / 4);
+
   return (
     <div className="input-area">
       {/* Quick prompts */}
@@ -67,6 +69,10 @@ export default function InputBox({ onSend, loading, prefillText, onPrefillUsed }
         <button className="send-btn" onClick={handleSend} disabled={!text.trim() || loading}>
           {loading ? <span className="spinner" /> : "➤"}
         </button>
+      </div>
+
+      <div style={{ fontSize: "0.65rem", color: "var(--text-muted)", textAlign: "right", paddingRight: "55px" }}>
+        {estimatedTokens > 0 ? `Estimated Input: ~${estimatedTokens} tokens` : "Llama-3 Output Capacity: ~2k tokens"}
       </div>
     </div>
   );
