@@ -1,3 +1,4 @@
+# Dharma-AI
 # ⚖️ DharmaAI: Indian Legal Assistant
 
 DharmaAI is an advanced, full-stack legal reasoning chatbot designed exclusively for the intricacies of Indian jurisprudence. Powered by the ultra-fast Groq API (Llama 3) and a custom Retrieval-Augmented Generation (RAG) pipeline built with ChromaDB, it instantly analyzes case laws, statutes, and ancient Indian Knowledge Systems (IKS).
@@ -61,4 +62,4 @@ npm start
 ---
 
 ## 👨‍💻 Created By
-**Ram Kapadia** - Artificial Intelligence & Full-Stack Developer
+**Arnav Narula** - Artificial Intelligence & Full-Stack Developer
