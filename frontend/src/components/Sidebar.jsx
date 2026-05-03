@@ -1,22 +1,24 @@
 import React from "react";
-import { Plus, MessageSquare, Library, BrainCircuit, Scale, Pencil, Trash2, Download, X, Check, X as XIcon } from "lucide-react";
+import { Plus, MessageSquare, Library, BrainCircuit, Pencil, Trash2, Download, X, Check, X as XIcon, Upload, LogOut, User } from "lucide-react";
 import Logo from "./Logo";
+import { useAuth } from "../contexts/AuthContext";
 
-export default function Sidebar({ 
-  chats, 
-  activeChatId, 
-  onNewChat, 
-  onSwitchChat, 
-  onDeleteChat, 
-  onRenameChat, 
-  onExport, 
-  activePanel, 
+export default function Sidebar({
+  chats,
+  activeChatId,
+  onNewChat,
+  onSwitchChat,
+  onDeleteChat,
+  onRenameChat,
+  onExport,
+  activePanel,
   setActivePanel,
   isExportDisabled,
   isOpen,
-  onClose
+  onClose,
+  onOpenUploader,
 }) {
-  
+  const { user, logout } = useAuth();
   const [editingChatId, setEditingChatId] = React.useState(null);
   const [editTitle, setEditTitle] = React.useState("");
   const [deleteConfirmId, setDeleteConfirmId] = React.useState(null);
@@ -29,9 +31,7 @@ export default function Sidebar({
   };
 
   const submitRename = () => {
-    if (editTitle.trim()) {
-      onRenameChat(editingChatId, editTitle.trim());
-    }
+    if (editTitle.trim()) onRenameChat(editingChatId, editTitle.trim());
     setEditingChatId(null);
   };
 
@@ -46,6 +46,9 @@ export default function Sidebar({
     setDeleteConfirmId(null);
   };
 
+  // Admin check — simple heuristic; real check is on backend
+  const isAdmin = user && process.env.REACT_APP_ADMIN_EMAILS?.split(",").includes(user.email);
+
   return (
     <aside className={`sidebar ${isOpen ? "open" : ""}`}>
       {/* Logo */}
@@ -55,9 +58,7 @@ export default function Sidebar({
           <div className="logo-title">DharmaAI</div>
           <div className="logo-sub">Indian Legal Assistant</div>
         </div>
-        <button className="mobile-close-btn" onClick={onClose}>
-          <X size={20} />
-        </button>
+        <button className="mobile-close-btn" onClick={onClose}><X size={20} /></button>
       </div>
 
       {/* New Chat */}
@@ -69,8 +70,8 @@ export default function Sidebar({
       <nav className="sidebar-nav">
         {[
           { id: "chat",      icon: <MessageSquare size={18} />, label: "Chat" },
-          { id: "sources",   icon: <Library size={18} />, label: "Library & Sources" },
-          { id: "templates", icon: <BrainCircuit size={18} />, label: "Brainstorming Templates" },
+          { id: "sources",   icon: <Library size={18} />,       label: "Library & Sources" },
+          { id: "templates", icon: <BrainCircuit size={18} />,  label: "Brainstorming Templates" },
         ].map((item) => (
           <button
             key={item.id}
@@ -87,38 +88,31 @@ export default function Sidebar({
         <p className="sidebar-section-title">Recent Chats</p>
         {chats.length === 0 && <p className="sidebar-empty">No queries yet</p>}
         {chats.map((chat) => {
-          const isEditing = editingChatId === chat.id;
+          const isEditing  = editingChatId === chat.id;
           const isDeleting = deleteConfirmId === chat.id;
-
           return (
-            <div 
-              key={chat.id} 
+            <div
+              key={chat.id}
               className="history-item"
-              style={activeChatId === chat.id ? { background: "rgba(26,35,126,0.08)", color: "var(--primary)", fontWeight: "600" } : {}}
-              onClick={() => {
-                if (!isEditing) onSwitchChat(chat.id);
-              }}
+              style={activeChatId === chat.id ? { background: "rgba(26,35,126,0.08)", color: "var(--primary)", fontWeight: 600 } : {}}
+              onClick={() => { if (!isEditing) onSwitchChat(chat.id); }}
             >
               {isEditing ? (
                 <input
-                  type="text"
-                  autoFocus
-                  className="sidebar-edit-input"
+                  type="text" autoFocus className="sidebar-edit-input"
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  onBlur={submitRename}
-                  onKeyDown={handleEditKeyDown}
+                  onBlur={submitRename} onKeyDown={handleEditKeyDown}
                   onClick={(e) => e.stopPropagation()}
                 />
               ) : (
                 <span className="history-title">{chat.title}</span>
               )}
-
               <div className="chat-actions">
                 {isDeleting ? (
                   <>
-                    <button className="chat-action-btn confirm-del" title="Confirm Delete" onClick={(e) => confirmDelete(e, chat.id)}><Check size={14} color="var(--danger)" /></button>
-                    <button className="chat-action-btn" title="Cancel" onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(null); }}><XIcon size={14} /></button>
+                    <button className="chat-action-btn confirm-del" onClick={(e) => confirmDelete(e, chat.id)}><Check size={14} color="var(--danger)" /></button>
+                    <button className="chat-action-btn" onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(null); }}><XIcon size={14} /></button>
                   </>
                 ) : (
                   <>
@@ -137,37 +131,35 @@ export default function Sidebar({
         <button className="export-btn" onClick={onExport} disabled={isExportDisabled}>
           <Download size={16} /> Export Session
         </button>
-        
-        <div style={{
-          marginTop: "0.5rem", 
-          padding: "0.75rem", 
-          background: "var(--surface)", 
-          borderRadius: "var(--radius-sm)", 
-          border: "1px solid var(--border)", 
-          display: "flex", 
-          alignItems: "center", 
-          gap: "0.6rem",
-          boxShadow: "var(--shadow-xs)"
-        }}>
-           <div style={{
-             background: "var(--primary)", 
-             width: "28px", 
-             height: "28px", 
-             borderRadius: "50%", 
-             display: "flex", 
-             alignItems:"center", 
-             justifyContent: "center", 
-             color: "white", 
-             fontSize: "0.75rem", 
-             fontWeight: "700"
-           }}>RK</div>
-           <div style={{display: "flex", flexDirection: "column"}}>
-             <span style={{fontSize: "0.65rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600}}>Creator</span>
-             <span style={{fontSize: "0.85rem", fontWeight: "700", color: "var(--primary)"}}>Ram Kapadia</span>
-           </div>
-        </div>
 
-        <p className="disclaimer" style={{marginTop: "0.25rem"}}>
+        {/* Admin PDF upload */}
+        {isAdmin && onOpenUploader && (
+          <button className="export-btn" style={{ marginTop: "0.4rem" }} onClick={onOpenUploader}>
+            <Upload size={16} /> Upload PDF (Admin)
+          </button>
+        )}
+
+        {/* User profile */}
+        {user && (
+          <div style={styles.profileCard}>
+            {user.photoURL ? (
+              <img src={user.photoURL} alt="" style={styles.avatar} referrerPolicy="no-referrer" />
+            ) : (
+              <div style={styles.avatarFallback}>
+                <User size={14} color="#fff" />
+              </div>
+            )}
+            <div style={styles.profileInfo}>
+              <span style={styles.profileName}>{user.displayName || user.email?.split("@")[0] || "User"}</span>
+              <span style={styles.profileEmail}>{user.email}</span>
+            </div>
+            <button style={styles.logoutBtn} onClick={logout} title="Sign out">
+              <LogOut size={14} />
+            </button>
+          </div>
+        )}
+
+        <p className="disclaimer" style={{ marginTop: "0.25rem" }}>
           Educational use only · Not legal advice<br />
           Powered by IKS & Modern Jurisprudence
         </p>
@@ -175,3 +167,25 @@ export default function Sidebar({
     </aside>
   );
 }
+
+const styles = {
+  profileCard: {
+    marginTop: "0.5rem",
+    padding: "0.6rem 0.75rem",
+    background: "var(--surface)",
+    borderRadius: "var(--radius-sm)",
+    border: "1px solid var(--border)",
+    display: "flex",
+    alignItems: "center",
+    gap: "0.6rem",
+  },
+  avatar: { width: 28, height: 28, borderRadius: "50%", objectFit: "cover", flexShrink: 0 },
+  avatarFallback: {
+    width: 28, height: 28, borderRadius: "50%", background: "var(--primary)",
+    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+  },
+  profileInfo: { flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" },
+  profileName: { fontSize: "0.82rem", fontWeight: 700, color: "var(--primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
+  profileEmail: { fontSize: "0.68rem", color: "var(--text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
+  logoutBtn: { background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: "2px", flexShrink: 0 },
+};

@@ -1,13 +1,8 @@
 import React, { useState } from "react";
-import { Search, Scale, ScrollText, BookOpen, FileText, Pin } from "lucide-react";
+import { Search, Pin } from "lucide-react";
 import { searchLegal, getGlossaryTerm } from "../services/api";
-
-const getTypeIcon = (type) => {
-  if (type === "case") return <Scale size={16} />;
-  if (type === "statute") return <ScrollText size={16} />;
-  if (type === "glossary") return <BookOpen size={16} />;
-  return <FileText size={16} />;
-};
+import CitationCard from "./CitationCard";
+import SourceViewer from "./SourceViewer";
 
 export default function SourcesPanel({ sources, onDocumentClick }) {
   const [searchQ, setSearchQ]     = useState("");
@@ -15,6 +10,7 @@ export default function SourcesPanel({ sources, onDocumentClick }) {
   const [glossary, setGlossary]   = useState(null);
   const [searching, setSearching] = useState(false);
   const [error, setError]         = useState("");
+  const [viewSource, setViewSource] = useState(null);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -40,9 +36,21 @@ export default function SourcesPanel({ sources, onDocumentClick }) {
     }
   };
 
+  // Map search result to Source-like shape for CitationCard
+  const toSource = (r) => ({
+    title: r.title,
+    type: r.type,
+    citation: r.citation || "",
+    excerpt: r.snippet || "",
+    page: "",
+  });
+
   return (
     <div className="panel">
-      <h3 className="panel-title"><Search size={18} style={{verticalAlign: "middle", marginRight: 8}}/> Legal Search</h3>
+      <h3 className="panel-title">
+        <Search size={18} style={{ verticalAlign: "middle", marginRight: 8 }} />
+        Legal Search
+      </h3>
 
       <form className="search-form" onSubmit={handleSearch}>
         <input
@@ -58,45 +66,40 @@ export default function SourcesPanel({ sources, onDocumentClick }) {
 
       {error && <p className="panel-error">{error}</p>}
 
-      {/* Search results */}
       {results.length > 0 && (
-        <div className="search-results">
+        <div style={{ marginTop: "0.75rem" }}>
           {results.map((r, i) => (
-            <div key={i} className="result-card" onClick={() => onDocumentClick?.(r.title)} style={{cursor: "pointer"}}>
-              <div className="result-header">
-                <span style={{ display: "flex", alignItems: "center" }}>{getTypeIcon(r.type)}</span>
-                <strong>{r.title}</strong>
-                <span className={`type-tag type-${r.type}`}>{r.type}</span>
-              </div>
-              <p className="result-snippet">{r.snippet}</p>
-            </div>
+            <CitationCard
+              key={i}
+              source={toSource(r)}
+              onViewSource={() => setViewSource(toSource(r))}
+            />
           ))}
         </div>
       )}
 
-      {/* Current chat sources */}
       {sources && sources.length > 0 && (
         <>
-          <h3 className="panel-title" style={{ marginTop: "1.5rem" }}><Pin size={18} style={{verticalAlign: "middle", marginRight: 8}}/> Chat Sources</h3>
+          <h3 className="panel-title" style={{ marginTop: "1.5rem" }}>
+            <Pin size={18} style={{ verticalAlign: "middle", marginRight: 8 }} />
+            Chat Sources
+          </h3>
           {sources.map((src, i) => (
-            <div key={i} className="result-card" onClick={() => onDocumentClick?.(src.title)} style={{cursor: "pointer"}}>
-              <div className="result-header">
-                <span style={{ display: "flex", alignItems: "center" }}>{getTypeIcon(src.type)}</span>
-                <strong>{src.title}</strong>
-                <span className={`type-tag type-${src.type}`}>{src.type}</span>
-              </div>
-              {src.citation && <p className="result-snippet">{src.citation}</p>}
-              {src.type === "glossary" && (
-                <button className="lookup-btn" onClick={(e) => { e.stopPropagation(); lookupGlossary(src.title); }}>
-                  Look up definition
-                </button>
-              )}
-            </div>
+            <CitationCard
+              key={i}
+              source={src}
+              onViewSource={() => setViewSource(src)}
+            />
           ))}
         </>
       )}
 
-      {/* Glossary popup */}
+      {!sources?.length && !results.length && (
+        <p style={{ color: "#9ca3af", fontSize: "0.875rem", marginTop: "1rem" }}>
+          Sources from your last message will appear here.
+        </p>
+      )}
+
       {glossary && (
         <div className="glossary-card">
           <div className="glossary-header">
@@ -106,6 +109,10 @@ export default function SourcesPanel({ sources, onDocumentClick }) {
           <p>{glossary.definition}</p>
           <p className="glossary-example"><em>Example: {glossary.example}</em></p>
         </div>
+      )}
+
+      {viewSource && (
+        <SourceViewer source={viewSource} onClose={() => setViewSource(null)} />
       )}
     </div>
   );
