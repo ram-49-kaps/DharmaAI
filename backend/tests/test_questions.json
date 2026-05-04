@@ -1,0 +1,38 @@
+[
+  {"id": "def_001", "category": "definition", "query": "What is mens rea?", "expected_intent": "definition", "must_contain": ["mens rea", "guilty mind", "intent"], "must_not_contain": ["irac", "idar"]},
+  {"id": "def_002", "category": "definition", "query": "Define habeas corpus", "expected_intent": "definition", "must_contain": ["habeas corpus", "detention", "court"], "must_not_contain": []},
+  {"id": "def_003", "category": "definition", "query": "What is Dharma in Indian jurisprudence?", "expected_intent": "definition", "must_contain": ["dharma", "duty"], "must_not_contain": []},
+  {"id": "def_004", "category": "definition", "query": "Explain Danda", "expected_intent": "definition", "must_contain": ["danda", "punishment"], "must_not_contain": []},
+  {"id": "def_005", "category": "definition", "query": "What is stare decisis?", "expected_intent": "definition", "must_contain": ["precedent", "binding"], "must_not_contain": []},
+
+  {"id": "case_001", "category": "case_lookup", "query": "Tell me about Kesavananda Bharati case", "expected_intent": "case_lookup", "must_contain": ["basic structure", "1973", "parliament"], "must_not_contain": []},
+  {"id": "case_002", "category": "case_lookup", "query": "What was the Maneka Gandhi judgment?", "expected_intent": "case_lookup", "must_contain": ["article 21", "procedure", "1978"], "must_not_contain": []},
+  {"id": "case_003", "category": "case_lookup", "query": "Explain the Vishaka v State of Rajasthan case", "expected_intent": "case_lookup", "must_contain": ["sexual harassment", "workplace", "guidelines"], "must_not_contain": []},
+  {"id": "case_004", "category": "case_lookup", "query": "What is the Puttaswamy privacy judgment?", "expected_intent": "case_lookup", "must_contain": ["privacy", "article 21", "fundamental right"], "must_not_contain": []},
+  {"id": "case_005", "category": "case_lookup", "query": "Tell me about Olga Tellis case", "expected_intent": "case_lookup", "must_contain": ["livelihood", "article 21", "eviction"], "must_not_contain": []},
+
+  {"id": "stat_001", "category": "statute_lookup", "query": "What does Article 21 of the Constitution say?", "expected_intent": "statute_lookup", "must_contain": ["life", "liberty", "procedure"], "must_not_contain": []},
+  {"id": "stat_002", "category": "statute_lookup", "query": "Explain Section 101 of BNS 2023", "expected_intent": "statute_lookup", "must_contain": ["murder", "bns"], "must_not_contain": []},
+  {"id": "stat_003", "category": "statute_lookup", "query": "What does the Indian Contract Act say about consideration?", "expected_intent": "statute_lookup", "must_contain": ["consideration", "contract"], "must_not_contain": []},
+  {"id": "stat_004", "category": "statute_lookup", "query": "What is Article 32?", "expected_intent": "statute_lookup", "must_contain": ["writ", "supreme court", "fundamental rights"], "must_not_contain": []},
+  {"id": "stat_005", "category": "statute_lookup", "query": "Explain Article 14 equality", "expected_intent": "statute_lookup", "must_contain": ["equality", "equal protection"], "must_not_contain": []},
+
+  {"id": "irac_001", "category": "irac_analysis", "query": "Apply IRAC to this scenario: A minor signed a contract to buy a car", "expected_intent": "irac_analysis", "must_contain": ["issue", "rule", "application", "conclusion"], "must_not_contain": []},
+  {"id": "irac_002", "category": "irac_analysis", "query": "Do an IRAC analysis: employer dismissed employee without notice", "expected_intent": "irac_analysis", "must_contain": ["issue", "rule", "application", "conclusion"], "must_not_contain": []},
+  {"id": "irac_003", "category": "irac_analysis", "query": "IRAC breakdown of unlawful detention scenario", "expected_intent": "irac_analysis", "must_contain": ["issue", "rule", "application", "conclusion"], "must_not_contain": []},
+
+  {"id": "idar_001", "category": "idar_analysis", "query": "Apply IDAR to this criminal law scenario: theft with remorse", "expected_intent": "idar_analysis", "must_contain": ["issue", "dharma", "danda", "resolution"], "must_not_contain": []},
+  {"id": "idar_002", "category": "idar_analysis", "query": "Use the Dharma framework to analyse a contract breach", "expected_intent": "idar_analysis", "must_contain": ["dharma", "issue"], "must_not_contain": []},
+  {"id": "idar_003", "category": "idar_analysis", "query": "IKS-based analysis of defamation case", "expected_intent": "idar_analysis", "must_contain": ["dharma", "issue"], "must_not_contain": []},
+
+  {"id": "follow_001", "category": "follow_up", "query": "Tell me more about that", "expected_intent": "follow_up", "must_contain": [], "must_not_contain": []},
+  {"id": "follow_002", "category": "follow_up", "query": "Continue, explain the IKS connection", "expected_intent": "follow_up", "must_contain": [], "must_not_contain": []},
+  {"id": "follow_003", "category": "follow_up", "query": "What about the punishment aspect?", "expected_intent": "follow_up", "must_contain": [], "must_not_contain": []},
+  {"id": "follow_004", "category": "follow_up", "query": "Elaborate on Article 21", "expected_intent": "follow_up", "must_contain": [], "must_not_contain": []},
+  {"id": "follow_005", "category": "follow_up", "query": "Go on, tell me more", "expected_intent": "follow_up", "must_contain": [], "must_not_contain": []},
+
+  {"id": "comp_001", "category": "comparative", "query": "Compare IRAC and IDAR frameworks", "expected_intent": "comparative", "must_contain": ["irac", "idar"], "must_not_contain": []},
+  {"id": "comp_002", "category": "comparative", "query": "How does BNS 2023 differ from IPC 1860?", "expected_intent": "comparative", "must_contain": ["bns", "ipc"], "must_not_contain": []},
+  {"id": "comp_003", "category": "comparative", "query": "Compare Arthashastra with Indian Contract Act", "expected_intent": "comparative", "must_contain": ["arthashastra", "contract"], "must_not_contain": []},
+  {"id": "comp_004", "category": "comparative", "query": "What is the difference between Pāpa and Aparādha?", "expected_intent": "comparative", "must_contain": ["papa", "aparadha"], "must_not_contain": []}
+]
