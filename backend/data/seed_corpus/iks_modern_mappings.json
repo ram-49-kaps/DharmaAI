@@ -1,0 +1,74 @@
+[
+  {
+    "id": "map_danda_bns",
+    "iks_concept": "Danda",
+    "iks_source": "Arthashastra Book IV; Manusmriti VIII.299-311",
+    "modern_equivalent": "Bharatiya Nyaya Sanhita 2023 — Punishment Framework",
+    "connection_type": "direct_evolution",
+    "detailed_explanation": "The Arthashastra's four-tier Danda (vāk-danda, artha-danda, deha-danda, vadha-danda) maps directly onto the BNS 2023 punishment framework. Artha-danda corresponds to fines (Sections 4, 8 BNS). Deha-danda corresponds to imprisonment (rigorous and simple). Vadha-danda corresponds to death penalty (Section 4). Vāk-danda (verbal censure/warning) has no direct equivalent in BNS but appears in sentencing practices. The key evolution is that modern law requires procedural due process (Article 21) before any Danda is applied — a constitutional overlay on the ancient framework.",
+    "not_just_keywords": "This is not a mere surface parallel. Both systems are grounded in proportionality, graduated response, and social deterrence. Kautilya's insistence on investigation (anusandhanam) before punishment directly anticipates the constitutional requirement of fair procedure. The BNS 2023's attention to organised crime, terrorism, and corruption mirrors Arthashastra's special provisions for grave offences against the state."
+  },
+  {
+    "id": "map_prayaschitta_probation",
+    "iks_concept": "Prāyaścitta",
+    "iks_source": "Yājñavalkya Smṛti III.219-306",
+    "modern_equivalent": "Probation of Offenders Act 1958; Restorative Justice",
+    "connection_type": "philosophical_continuity",
+    "detailed_explanation": "Prāyaścitta's emphasis on rehabilitation, remorse, and restoration maps onto modern restorative justice frameworks. CrPC Section 360 (now BNSS equivalent) allows release on probation for first offenders — the law explicitly recognises that some offenders can be rehabilitated without imprisonment. The Probation of Offenders Act 1958 operationalises Prāyaścitta's insight that the goal of criminal justice is not merely punishment but the offender's return to virtuous conduct.",
+    "not_just_keywords": "The connection is substantive: both Prāyaścitta and modern restorative justice recognise that community-based rehabilitation is often more effective than incarceration. The IKS framework adds the dimension of moral restoration — not just social reintegration but the offender's internal transformation."
+  },
+  {
+    "id": "map_papa_aparadha_mens_rea",
+    "iks_concept": "Pāpa vs. Aparādha",
+    "iks_source": "Manusmriti VIII.26; Arthashastra Book III",
+    "modern_equivalent": "Mens Rea / Actus Reus distinction in criminal law",
+    "connection_type": "conceptual_parallel",
+    "detailed_explanation": "The Pāpa/Aparādha distinction maps onto the criminal law's mental/physical element division. Aparādha = actus reus (the prohibited external act). The intent (citta) behind the act corresponds to mens rea. The Arthashastra recognises aggravated aparādha where both the act and intent are grave, parallel to modern aggravated offences. Just as mens rea determines the grade of the offence (murder vs. culpable homicide), the classification of intent in Arthashastra determines which tier of Danda applies.",
+    "not_just_keywords": "Manusmriti VIII.26 explicitly requires both act and motive before punishment: 'Let the king examine the evidence and the motive.' This is a procedural requirement, not merely a moral observation. It establishes that both elements must be proven — a procedural safeguard equivalent to the prosecution's burden of proof in criminal law."
+  },
+  {
+    "id": "map_rajadharma_dpsp",
+    "iks_concept": "Rājadharma",
+    "iks_source": "Arthashastra I.19.34; Manusmriti VII",
+    "modern_equivalent": "Directive Principles of State Policy (Articles 36-51)",
+    "connection_type": "constitutional_embodiment",
+    "detailed_explanation": "Rājadharma's core principle that 'the happiness of the subjects is the happiness of the king' (Arthashastra I.19.34) is constitutionally embodied in the DPSPs. Article 38 (welfare state), Article 39 (equal distribution of resources), Article 43 (living wage), Article 47 (public health) — all reflect Rājadharma obligations. The distinction in Indian constitutional law between enforceable Fundamental Rights (Part III) and directive Rājadharma (Part IV) mirrors the Arthashastra's distinction between legally compellable duties and moral-political obligations of kingship.",
+    "not_just_keywords": "The key conceptual link is accountability: both Rājadharma and DPSPs establish that the state is not a sovereign above law but an institution bound by obligations to the people. The Supreme Court's progressive interpretation of DPSPs as interpretive guides for Fundamental Rights (State of Kerala v. N.M. Thomas, Minerva Mills) parallels the Dharmaśāstra tradition of using Rājadharma to interpret and limit state power."
+  },
+  {
+    "id": "map_vyavahara_cpc",
+    "iks_concept": "Vyavahāra",
+    "iks_source": "Nāradasmṛti; Manusmriti VIII; Yājñavalkya Smṛti II",
+    "modern_equivalent": "Civil Procedure Code 1908; Evidence Act 1872",
+    "connection_type": "direct_evolution",
+    "detailed_explanation": "The 18 titles of Vyavahāra map almost entirely onto the subjects covered by the CPC and specific statutes. Non-payment of debt → Negotiable Instruments Act / Civil suit for recovery. Partnership disputes → Partnership Act 1932. Boundary disputes → Land Acquisition/Revenue laws. Assault → IPC Chapter XVI offences. Inheritance division → Hindu Succession Act. The Vyavahāra procedural principles (impartial judge, structured pleading, witness rules) are carried forward in CPC Orders and the Evidence Act.",
+    "not_just_keywords": "Beyond subject matter, the procedural philosophy is continuous. Nāradasmṛti's insistence on 'dharmastha' (impartial judge) anticipates the rules against bias in administrative law. The sākṣī (witness) rules in Yājñavalkya Smṛti anticipate the competency and examination rules in the Evidence Act."
+  },
+  {
+    "id": "map_dharma_article21",
+    "iks_concept": "Dharma",
+    "iks_source": "Manusmriti II.6; Bhagavad Gita III.35",
+    "modern_equivalent": "Article 21 — Right to Life and Personal Liberty",
+    "connection_type": "philosophical_grounding",
+    "detailed_explanation": "Dharma's core principle that every person has inherent worth and dignity (Ātman-centered ethics) provides the philosophical foundation for Article 21's expansive interpretation. The Supreme Court's recognition of 'right to life with dignity' (Francis Coralie Mullin v. UT Delhi, 1981), 'right to livelihood' (Olga Tellis v. Bombay Municipal Corporation, 1985), and 'right to health' drew on a philosophical tradition of human dignity rooted in Dharma. The Maneka Gandhi v. Union of India (1978) interpretation — that procedure must be 'just, fair and reasonable' — reflects Dharma's demand for substantive not merely formal justice.",
+    "not_just_keywords": "The connection is philosophical: Dharma's concept of each person as Brahman-in-form (atman) grounds a non-negotiable human dignity that cannot be abolished even by the state. This is precisely the reasoning in Puttaswamy (Privacy) — dignity is antecedent to the state, not granted by it."
+  },
+  {
+    "id": "map_nitishastra_administrative_law",
+    "iks_concept": "Nītiśāstra",
+    "iks_source": "Arthashastra; Kāmandakīya Nītisāra",
+    "modern_equivalent": "Administrative Law; Judicial Review",
+    "connection_type": "structural_parallel",
+    "detailed_explanation": "Nītiśāstra's elaborate rules on amātya-dharma (official/ministerial duty) anticipate the principles of administrative law. Officials (amātya) must act within their mandate (akin to ultra vires doctrine), must follow prescribed procedure (akin to procedural fairness), and are subject to accountability (dandanīti applies to officials too). The Arthashastra's elaborate anti-corruption framework (Book II) anticipates the Prevention of Corruption Act. The concept of rāja-viveka (discretionary power of the king) bounded by dharma anticipates the administrative law doctrine that discretionary power must be exercised reasonably and in good faith.",
+    "not_just_keywords": "The Arthashastra's specification of when officials may exercise independent judgment (viveka) and when they must follow fixed procedure creates a framework similar to the modern distinction between acts of discretion (reviewable on Wednesbury unreasonableness) and acts in breach of mandatory procedure (reviewable for procedural impropriety)."
+  },
+  {
+    "id": "map_purushartha_constitutional_values",
+    "iks_concept": "Puruṣārtha",
+    "iks_source": "Manusmriti II.224; Bhagavad Gita; Daya Krishna",
+    "modern_equivalent": "Constitutional Values — Equality, Liberty, Fraternity, Justice",
+    "connection_type": "value_alignment",
+    "detailed_explanation": "The Preamble to the Constitution promises Justice (Dharma), Liberty (Kāma/Mokṣa), Equality (aspects of Dharma), and Fraternity (Sāmānya Dharma). The Puruṣārtha framework maps: Dharma → Justice and constitutional morality; Artha → Economic rights and DPSPs; Kāma → Liberty rights (Articles 19, 21); Mokṣa → Freedom of conscience and religion (Article 25), privacy (Puttaswamy). The tension between Artha and Dharma — between economic efficiency and justice — is the central tension in constitutional adjudication, as anticipated by the Puruṣārtha framework.",
+    "not_just_keywords": "Daya Krishna's insight that the four Puruṣārthas are in creative tension (not a hierarchy) maps onto constitutional interpretation theory: rights are not absolute (Artha can limit Kāma in public interest) but each has irreducible core that cannot be extinguished."
+  }
+]

@@ -1,0 +1,213 @@
+[
+  {
+    "id": "iks_dharma_001",
+    "concept": "Dharma",
+    "category": "iks_texts",
+    "text": "Dharma is the foundational concept of Indian jurisprudence, encompassing righteous duty, cosmic order, and the moral-legal obligations governing both individuals and the state. The Manusmriti (II.6) defines Dharma through five sources: the entire Veda, the tradition and customs of those who know the Veda, the conduct of virtuous men, and self-satisfaction. In jurisprudential terms, Dharma is not a static code but an evolving standard that balances individual rights (svadharma) with social obligations (sadharana dharma). Dharma in the legal sense comprises: (1) Achara — right conduct prescribed by tradition; (2) Vyavahara — legal procedure and dispute resolution; (3) Prayaschitta — expiation and remedial justice; (4) Upacharas — ceremonial observances. The Bhagavad Gita (III.35) emphasises that svadharma (one's own duty) must be upheld even imperfectly, establishing the principle of duty-based rather than purely consequence-based ethics.",
+    "citations": [
+      "Manusmriti II.6",
+      "Bhagavad Gita III.35",
+      "Yājñavalkya Smṛti I.7"
+    ],
+    "modern_connections": [
+      "Article 21 — Right to Life with Dignity mirrors Dharma's protection of human sanctity",
+      "Directive Principles of State Policy (Articles 36-51) embody Rājadharma"
+    ]
+  },
+  {
+    "id": "iks_danda_001",
+    "concept": "Danda",
+    "category": "iks_texts",
+    "text": "Danda (literally 'rod' or 'sceptre') is the Kautilyan theory of state-sanctioned punishment, described comprehensively in the Arthashastra (Book I, Chapter 4 and Book IV). Kautilya states: 'Danda protects this world and the next' (Arthashastra I.4.3). Danda is not merely punishment but the entire coercive apparatus of the state used to enforce Dharma and maintain social order (dandaniti). Four types of Danda in ascending severity: (1) Vāk-danda — verbal censure or public reprimand; (2) Artha-danda — financial penalty or fine; (3) Deha-danda — corporal punishment; (4) Vadha-danda — capital punishment. Kautilya prescribes proportionality: the Danda must be proportionate to the offence, the offender's intent, and the social harm caused. The Arthashastra (Book III) also recognises mitigation factors equivalent to modern concepts of diminished responsibility. The Manusmriti (VIII.299-311) elaborates: 'The King who administers punishment according to justice is praised; punishment, if properly inflicted, brings contentment to all creatures.' Crucially, Danda must only be applied after thorough inquiry (anusandhanam) — establishing an ancient parallel to due process.",
+    "citations": [
+      "Arthashastra I.4.3",
+      "Arthashastra Book IV (Kautilya)",
+      "Manusmriti VIII.299-311",
+      "Manusmriti VIII.308"
+    ],
+    "modern_connections": [
+      "Bharatiya Nyaya Sanhita 2023 — modernises Danda framework for criminal sanctions",
+      "IPC 1860 Sections 53, 54 — types of punishments (imprisonment, fine, death)",
+      "Sentencing policy under BNS 2023 reflects Danda proportionality principle"
+    ]
+  },
+  {
+    "id": "iks_prayaschitta_001",
+    "concept": "Prāyaścitta",
+    "category": "iks_texts",
+    "text": "Prāyaścitta means expiation, atonement, or remedial justice — the restorative dimension of Indian jurisprudence. Where Danda addresses the public wrong (aparādha), Prāyaścitta addresses the private moral wrong (pāpa) and the restoration of the wrongdoer to social and moral standing. The Yājñavalkya Smṛti (III.219-306) provides the most systematic treatment, classifying wrongs by severity and prescribing proportionate expiation. Key principles: (1) Sincere remorse (paścāttāpa) is a prerequisite for expiation; (2) Public confession (prāyaścitta-vacana) serves both remedial and deterrent functions; (3) Restoration of the victim is paramount. Prāyaścitta differs from Danda in that it is primarily rehabilitative rather than punitive. The Mitākṣarā commentary on Yājñavalkya distinguishes between crimes requiring state punishment (rājadaṇḍa) and those requiring personal expiation (prāyaścitta), anticipating the modern public/private law distinction.",
+    "citations": [
+      "Yājñavalkya Smṛti III.219-306",
+      "Mitākṣarā commentary on Yājñavalkya Smṛti",
+      "Manusmriti XI.44-54"
+    ],
+    "modern_connections": [
+      "Probation of Offenders Act 1958 — rehabilitative justice mirrors Prāyaścitta",
+      "CrPC Section 360 / BNSS equivalent — release on probation",
+      "Restorative Justice programmes in juvenile law"
+    ]
+  },
+  {
+    "id": "iks_vyavahara_001",
+    "concept": "Vyavahāra",
+    "category": "iks_texts",
+    "text": "Vyavahāra is the procedural law of ancient India — the rules governing dispute resolution, trial procedure, and the administration of justice. The Nāradasmṛti is the most detailed procedural code, while Manusmriti (Chapter VIII) and Yājñavalkya Smṛti (Chapter II) also treat it extensively. Vyavahāra comprises 18 titles of litigation (vivāda-padas): (1) Non-payment of debt; (2) Deposit and pledge; (3) Sale without ownership; (4) Concerns among partners; (5) Resumption of gifts; (6) Non-payment of wages; (7) Non-performance of agreements; (8) Rescission of sale and purchase; (9) Disputes between master and servant; (10) Disputes on boundaries; (11) Verbal assault; (12) Physical assault; (13) Theft; (14) Robbery and violence; (15) Adultery; (16) Duties of man and wife; (17) Division of inheritance; (18) Gambling and betting. The Nāradasmṛti establishes procedural safeguards: impartiality of the judge (dharmastha), right to present evidence (sākṣī), and structured pleading (paṇyāga).",
+    "citations": [
+      "Nāradasmṛti I.1.10 — 18 titles of litigation",
+      "Manusmriti VIII.1-100",
+      "Yājñavalkya Smṛti II.1-5"
+    ],
+    "modern_connections": [
+      "Civil Procedure Code 1908 — codifies Vyavahāra procedural principles",
+      "Evidence Act 1872 — admissibility rules parallel ancient sākṣī (witness) rules",
+      "Contract Act 1872 — many of the 18 titles are now codified in contract/property law"
+    ]
+  },
+  {
+    "id": "iks_papa_aparadha_001",
+    "concept": "Pāpa vs. Aparādha",
+    "category": "iks_texts",
+    "text": "Indian jurisprudence draws a crucial distinction between Pāpa (sin, moral transgression) and Aparādha (legal offence, crime). This distinction anticipates the modern criminal law distinction between moral culpability and legal liability. Pāpa is a violation of cosmic-moral order (ṛta/dharma) that primarily harms the transgressor's soul and requires expiation (Prāyaścitta). Aparādha is a violation of the king's law (rājadharma) or social order that harms others and requires state punishment (Danda). The Arthashastra (Book III) recognises that the same act can constitute both Pāpa and Aparādha — killing a Brahmin is both a moral sin and a legal crime — establishing a dual-track justice system. Critically, Aparādha requires both an external act (corresponding to actus reus) and intent or knowledge (corresponding to mens rea). The Manusmriti (VIII.26) states: 'When a man commits an offence, let the king examine the evidence (sākṣī) and the motive (citta).' This parallels the modern criminal law maxim 'actus non facit reum nisi mens sit rea.'",
+    "citations": [
+      "Manusmriti VIII.26",
+      "Arthashastra Book III Chapter 1",
+      "Yājñavalkya Smṛti II.270-290"
+    ],
+    "modern_connections": [
+      "Mens Rea doctrine in IPC/BNS — intent as element of crime",
+      "Actus Reus — external conduct requirement",
+      "Section 84 IPC (now BNS Section 22) — unsound mind defence parallels Pāpa mitigation"
+    ]
+  },
+  {
+    "id": "iks_rajadharma_001",
+    "concept": "Rājadharma",
+    "category": "iks_texts",
+    "text": "Rājadharma is the dharma of the king — the constitutional duties, obligations, and limitations on state power in classical Indian political thought. It is the most extensive topic in the Mahābhārata's Śāntiparva and is treated systematically in the Arthashastra, Manusmriti, and Kāmandakīya Nītisāra. Core principles of Rājadharma: (1) The king exists for the welfare of the people (prajā-sukhe sukham rājñaḥ) — Arthashastra I.19.34; (2) The king is bound by dharma, not above it; (3) The king must protect the weak (dīna-rakṣaṇa); (4) Equal treatment of all subjects regardless of birth (samatva); (5) The king must administer justice impartially (nirviśeṣa-nyāya). The Arthashastra famously states: 'The happiness of the subjects is the happiness of the king; their welfare is his welfare. The king's good does not consist in what pleases him but in what pleases his subjects.' This formulation anticipates the welfare state theory by 23 centuries.",
+    "citations": [
+      "Arthashastra I.19.34",
+      "Mahābhārata Śāntiparva 56.23-41",
+      "Manusmriti VII.1-144"
+    ],
+    "modern_connections": [
+      "Directive Principles of State Policy (Articles 36-51) — Rājadharma as welfare obligations",
+      "Article 21 — state's duty to protect life and dignity mirrors dīna-rakṣaṇa",
+      "Public Interest Litigation (PIL) — citizens enforcing Rājadharma against the state"
+    ]
+  },
+  {
+    "id": "iks_karma_legal_001",
+    "concept": "Karma (Legal Sense)",
+    "category": "iks_texts",
+    "text": "In the legal context, Karma (literally 'action' or 'deed') refers to the principle that every intentional act has consequences — both for the actor and for social order. Unlike the metaphysical concept, legal Karma in Vyavahāra focuses on (a) the act performed (karma), (b) the intent behind it (citta/saṃkalpa), and (c) its consequences on social harmony (vyavasthā). The Manusmriti (XII.3-9) classifies karma into mental (mānasa), verbal (vācika), and bodily (śārīra) acts, each attracting different consequences. The Arthashastra's concept of proportional punishment (dandamāna) is grounded in karma-theory: the severity of punishment must match the severity and intent of the act. This tripartite classification of mental-verbal-bodily karma is strikingly parallel to modern criminal law's classification of completed offences, attempt, abetment, and conspiracy.",
+    "citations": [
+      "Manusmriti XII.3-9",
+      "Arthashastra Book III (dandamāna)",
+      "Bhagavad Gita III.27"
+    ],
+    "modern_connections": [
+      "IPC/BNS — attempt (Section 511 IPC / BNS equivalent) parallels incomplete karma",
+      "Abetment and conspiracy — verbal and mental karma",
+      "Mens rea and actus reus as two dimensions of karma"
+    ]
+  },
+  {
+    "id": "iks_dandaniti_001",
+    "concept": "Daṇḍanīti",
+    "category": "iks_texts",
+    "text": "Daṇḍanīti is the science of punishment and statecraft — the systematic study of how the state should exercise coercive power. It is one of the four sciences (vidyās) in the Arthashastra alongside agriculture (vārtā), philosophy (ānvīkṣikī), and the three Vedas (trayī). Kautilya's Arthashastra is the definitive text on Daṇḍanīti. Key principles: (1) Daṇḍanīti serves the dual purpose of deterrence (śāsana) and justice (nyāya); (2) Punishment must be graduated — excessive punishment creates resentment, insufficient punishment breeds lawlessness; (3) The investigation (anusandhanam) must precede punishment — Arthashastra IV.8; (4) The king's officers (dharmastha) are bound by procedure; (5) Special protections for the vulnerable (women, children, old, sick) in punishment. The Arthashastra (Book IV, Chapter 8) establishes what we might today call sentencing guidelines — specific punishments for specific offences with aggravating and mitigating factors.",
+    "citations": [
+      "Arthashastra I.2 (four sciences)",
+      "Arthashastra IV.8 (investigation before punishment)",
+      "Arthashastra Book IV (sentencing guidelines)"
+    ],
+    "modern_connections": [
+      "Sentencing policy under BNS 2023",
+      "Judicial discretion in sentencing — graduated punishment",
+      "Due process requirement before punishment — Article 21 procedure established by law"
+    ]
+  },
+  {
+    "id": "iks_nitishastra_001",
+    "concept": "Nītiśāstra",
+    "category": "iks_texts",
+    "text": "Nītiśāstra (science of polity/ethics) is the broader framework of statecraft and public ethics of which Daṇḍanīti is one branch. Major Nītiśāstra texts include Kautilya's Arthashastra, Kāmandakīya Nītisāra, Viṣṇugupta's Mudrārākṣasa, and Śukranīti. The Kāmandakīya Nītisāra (a condensed version of Arthashastra) states that a king who ignores Nītiśāstra will fall to his enemies. Key doctrines: (1) The state has legitimate interests that may override individual preferences (sāmānyanīti); (2) Expediency (artha) must be balanced with ethics (dharma) — the core tension in Indian political philosophy; (3) The state machinery must be efficient and accountable (amātya-dharma). Nītiśāstra recognises what modern administrative law calls the distinction between policy discretion (rāja-viveka) and legal obligation (dharma-baddhata).",
+    "citations": [
+      "Kāmandakīya Nītisāra I.6",
+      "Arthashastra I.1 (purpose of Arthashastra)",
+      "Śukranīti IV.2"
+    ],
+    "modern_connections": [
+      "Administrative law — balance of discretion vs. legal obligation",
+      "Public policy doctrine in contract law",
+      "Constitutional morality as the modern expression of Nītiśāstra"
+    ]
+  },
+  {
+    "id": "iks_purushartha_001",
+    "concept": "Puruṣārtha",
+    "category": "iks_texts",
+    "text": "Puruṣārtha (the aims of human life) comprises the four goals: Dharma (righteousness/duty), Artha (wealth/material welfare), Kāma (desire/pleasure), and Mokṣa (liberation/ultimate freedom). In jurisprudential context, Puruṣārtha provides a multi-value framework for legal analysis that goes beyond purely utilitarian or deontological reasoning. Philosopher Daya Krishna's influential reinterpretation argues that the four Puruṣārthas are not a hierarchy but a dynamic tension — law must simultaneously accommodate all four. Legal implications: (1) Dharma as the ground of legality — a law that violates dharma lacks legitimacy; (2) Artha as social utility — law must serve material welfare; (3) Kāma as individual autonomy — law must protect legitimate personal freedoms (anticipating Article 19); (4) Mokṣa as ultimate freedom — some personal and spiritual choices are beyond law's proper reach. The Supreme Court's privacy judgment in Puttaswamy v. Union of India (2017) draws on this framework implicitly when it grounds privacy in 'dignity' — the modern expression of the Mokṣa dimension.",
+    "citations": [
+      "Manusmriti II.224 (hierarchy of aims)",
+      "Bhagavad Gita III.10-15",
+      "Daya Krishna, 'The Myth of the Purusarthas' (1980)"
+    ],
+    "modern_connections": [
+      "Puttaswamy v. Union of India (2017) — privacy as dignity/Mokṣa dimension",
+      "Article 19 — freedom/Kāma dimension",
+      "DPSPs — Artha (welfare) dimension",
+      "Article 21 — Dharma dimension (dignified life)"
+    ]
+  },
+  {
+    "id": "iks_arthashastra_principles_001",
+    "concept": "Arthashastra Principles",
+    "category": "iks_texts",
+    "text": "Kautilya's Arthashastra (c. 321-296 BCE) is the most comprehensive ancient Indian treatise on statecraft, economics, and law. Key legal principles from the Arthashastra relevant to modern Indian law: (1) Rule of Law — the king is not above dharma: 'Even the king is subject to the law' (Arthashastra I.3.13); (2) Proportionality in punishment — Arthashastra Book IV establishes a graduated sentencing scale; (3) Procedural fairness — investigation (anusandhanam) must precede punishment (Arthashastra IV.8); (4) Protection of the vulnerable — special provisions for protection of women, artisans, and labourers (Arthashastra III.13-20); (5) Contract law — Book III contains detailed provisions on valid contracts, debt, wages, and remedies; (6) Commercial regulation — Arthashastra Book II regulates trade, weights and measures, taxation; (7) Environmental protection — Arthashastra II.2 protects forests, wildlife, and water sources. The Arthashastra's concept of 'matsyanyāya' (big fish eating small fish) describes the state of lawlessness that justice must prevent — a remarkably modern articulation of the rule of law rationale.",
+    "citations": [
+      "Arthashastra I.3.13 (king subject to law)",
+      "Arthashastra IV.8 (procedure before punishment)",
+      "Arthashastra III.13-20 (protection of vulnerable)",
+      "Arthashastra II.2 (environmental protection)"
+    ],
+    "modern_connections": [
+      "Rule of Law doctrine — Article 14 equal protection",
+      "Contract Act 1872 — Arthashastra Book III provisions",
+      "Environmental Protection Act 1986 — Arthashastra II.2 environmental provisions",
+      "Labour law protections — Arthashastra artisan/worker protections"
+    ]
+  },
+  {
+    "id": "iks_rta_001",
+    "concept": "Ṛta (Cosmic Order)",
+    "category": "iks_texts",
+    "text": "Ṛta is the Vedic concept of cosmic order, truth, and the law of the universe. It is the precursor to Dharma and represents the fundamental moral-cosmic order that governance must reflect. In the Ṛgveda, Ṛta is the principle that sustains the cosmos and governs the gods themselves — not even Indra can violate Ṛta. The transition from Ṛta to Dharma in post-Vedic thought represents a shift from cosmic necessity to moral obligation — from 'the way things are' to 'the way things ought to be.' In jurisprudential terms, Ṛta establishes that: (1) Law is not mere sovereign command but reflects a deeper moral order; (2) Even rulers are bound by this order; (3) Justice must align with cosmic truth (satya) rather than merely social convenience. This prefigures natural law theory in Western jurisprudence and the Indian Supreme Court's invocation of 'constitutional morality' as a higher standard than mere popular morality.",
+    "citations": [
+      "Ṛgveda I.90.6",
+      "Ṛgveda V.63.7",
+      "Atharva Veda XII.1 (Ṛta as foundation of dharma)"
+    ],
+    "modern_connections": [
+      "Constitutional morality — Navtej Singh Johar v. Union of India (2018)",
+      "Basic Structure Doctrine — some constitutional norms are inviolable",
+      "Natural justice principles (audi alteram partem, nemo judex)"
+    ]
+  },
+  {
+    "id": "iks_samanya_vishesha_dharma_001",
+    "concept": "Sāmānya Dharma and Viśeṣa Dharma",
+    "category": "iks_texts",
+    "text": "Indian jurisprudence distinguishes between Sāmānya Dharma (universal/common duty applicable to all) and Viśeṣa Dharma (special duty applicable by role, stage of life, or circumstance). Sāmānya Dharma includes: non-violence (ahiṃsā), truthfulness (satya), non-stealing (asteya), compassion (dayā), and self-restraint. Viśeṣa Dharma includes duties based on varṇa (social class), āśrama (stage of life), and specific roles (king, judge, merchant). The jurisprudential significance: (1) Sāmānya Dharma anticipates universal human rights — duties owed by everyone to everyone; (2) Viśeṣa Dharma anticipates role-based duties and fiduciary obligations — the enhanced duties of those in positions of power; (3) The tension between the two was a major source of legal commentary and dispute, paralleling the modern tension between general law and special statutes. The Supreme Court's doctrine of 'constitutional obligations' on state actors derives from Viśeṣa Dharma — enhanced duties because of power.",
+    "citations": [
+      "Manusmriti X.63 (Sāmānya Dharma)",
+      "Bhagavad Gita XVIII.41-44 (Viśeṣa Dharma)",
+      "Yājñavalkya Smṛti I.122"
+    ],
+    "modern_connections": [
+      "Fundamental duties (Article 51A) — Sāmānya Dharma",
+      "Enhanced state obligations under Article 21 — Viśeṣa Dharma",
+      "Fiduciary duty in company law and trust law"
+    ]
+  }
+]
