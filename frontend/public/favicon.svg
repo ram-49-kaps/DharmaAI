@@ -1,0 +1,17 @@
+<svg width="256" height="256" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100" height="100" rx="24" fill="url(#grad)" />
+  <!-- Outer abstract tech ring (AI edge computing constraint) -->
+  <circle cx="50" cy="50" r="36" stroke="white" strokeWidth="4" strokeDasharray="14 10" />
+  <!-- Inner solid ring establishing core bounds -->
+  <circle cx="50" cy="50" r="25" stroke="white" strokeWidth="4" />
+  <!-- 8-spoke Dharma Chakra intersecting the center node -->
+  <path d="M50 18 L50 82 M18 50 L82 50 M27 27 L73 73 M27 73 L73 27" stroke="white" strokeWidth="5" strokeLinecap="round"/>
+  <!-- Center glowing intelligence core -->
+  <circle cx="50" cy="50" r="9" fill="white" />
+  <defs>
+    <linearGradient id="grad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D97706" />
+      <stop offset="1" stop-color="#B45309" />
+    </linearGradient>
+  </defs>
+</svg>
