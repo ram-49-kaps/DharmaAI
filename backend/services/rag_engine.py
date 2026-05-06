@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 import os
+import requests
 from typing import List, Optional
 
 from google import genai
@@ -31,18 +32,24 @@ class GeminiEmbeddingFunction(embedding_functions.EmbeddingFunction):
     """ChromaDB-compatible wrapper for Gemini text-embedding-004."""
 
     def __init__(self, api_key: str):
-        self._client = genai.Client(api_key=api_key)
+        self.api_key = api_key
 
     def __call__(self, input: List[str]) -> List[List[float]]:
         """Batch-embed all texts in a single API call to conserve quota."""
         if not input:
             return []
         try:
-            resp = self._client.models.embed_content(
-                model=EMBED_MODEL,
-                contents=input,
-            )
-            return [e.values for e in resp.embeddings]
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{EMBED_MODEL}:batchEmbedContents?key={self.api_key}"
+            requests_data = [{"model": f"models/{EMBED_MODEL}", "content": {"parts": [{"text": text}]}} for text in input]
+            
+            resp = requests.post(url, json={"requests": requests_data}, timeout=15)
+            if resp.status_code == 429:
+                logger.error("[Embed] Gemini Rate Limited (429) during batch embed")
+                return [[0.0] * 768 for _ in input]
+            
+            resp.raise_for_status()
+            data = resp.json()
+            return [e["values"] for e in data.get("embeddings", [])]
         except Exception as exc:
             logger.error(f"[Embed] Batch embedding failed: {exc}")
             # Fallback: return zero vectors so the app doesn't crash
@@ -61,12 +68,17 @@ def _embed_query(query: str) -> List[float]:
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise RuntimeError("GEMINI_API_KEY not set")
-    client = genai.Client(api_key=api_key)
-    resp = client.models.embed_content(
-        model=EMBED_MODEL,
-        contents=query,
+    
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{EMBED_MODEL}:embedContent?key={api_key}"
+    resp = requests.post(
+        url,
+        json={"model": f"models/{EMBED_MODEL}", "content": {"parts": [{"text": query}]}},
+        timeout=5  # Fail fast! No hanging!
     )
-    return resp.embeddings[0].values
+    if resp.status_code == 429:
+        raise RuntimeError("GEMINI_RATE_LIMITED")
+    resp.raise_for_status()
+    return resp.json()["embedding"]["values"]
 
 
 class RAGEngine:
