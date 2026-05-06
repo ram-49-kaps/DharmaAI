@@ -70,7 +70,7 @@ def run_follow_up_chain(message: str, history: List[dict]) -> str:
         history_parts = []
         for msg in recent:
             role = "User" if msg.get("role") == "user" else "DharmaAI"
-            content = msg.get("content", "")[:600]
+            content = msg.get("content", "")[:2000]
             history_parts.append(f"**{role}**: {content}")
         history_text = "\n\n".join(history_parts) if history_parts else "No previous conversation."
 
@@ -79,7 +79,7 @@ def run_follow_up_chain(message: str, history: List[dict]) -> str:
             (m.get("content", "") for m in reversed(recent) if m.get("role") == "assistant"),
             ""
         )
-        retrieval_query = f"{message} {last_assistant[:200]}" if last_assistant else message
+        retrieval_query = f"{message} {last_assistant[:500]}" if last_assistant else message
 
         engine = get_rag_engine()
         context, _ = engine.retrieve(retrieval_query)

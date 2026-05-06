@@ -90,10 +90,10 @@ INTENT DEFINITIONS AND EXAMPLES:
    - "How does the PIL mechanism work?"
 
 CRITICAL RULES:
-- Default to "general_qa" when in doubt
-- NEVER classify a general legal question as "irac_analysis" unless the user explicitly says "IRAC"
-- NEVER classify as "idar_analysis" unless the user explicitly says "IDAR" or "Dharma framework"
-- Questions about Danda, Dharma, or IKS are "definition" or "general_qa" NOT "idar_analysis"
+- Default to "general_qa" for any normal legal question, even if it asks to "explain" something or solve a problem.
+- NEVER classify a question as "irac_analysis" unless the user EXPLICITLY types the word "IRAC".
+- NEVER classify as "idar_analysis" unless the user EXPLICITLY types the word "IDAR" or "Dharma framework".
+- Questions about Danda, Dharma, or IKS are just "definition" or "general_qa", NOT "idar_analysis".
 - Reply with ONLY the intent label. No punctuation. No explanation. No quotes."""),
     ("human", "{message}")
 ])
