@@ -33,6 +33,7 @@ def get_llm():
             google_api_key=gemini_key,
             temperature=0.3,
             max_output_tokens=4096,
+            max_retries=0,
         )
 
     return _get_groq_llm()
@@ -50,6 +51,7 @@ def _get_groq_llm():
         temperature=0.3,
         max_tokens=4096,
         groq_api_key=groq_key,
+        max_retries=0,
     )
 
 

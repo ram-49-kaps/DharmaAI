@@ -24,7 +24,7 @@ CHROMA_PATH = os.path.join(os.path.dirname(__file__), "../db/chroma_db_v2")
 
 COLLECTIONS = ["iks_texts", "modern_law", "case_law", "glossary"]
 
-EMBED_MODEL = "text-embedding-004"
+EMBED_MODEL = "gemini-embedding-001"
 
 
 class GeminiEmbeddingFunction(embedding_functions.EmbeddingFunction):
