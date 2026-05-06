@@ -21,13 +21,18 @@ logger = logging.getLogger(__name__)
 @lru_cache(maxsize=1)
 def get_llm():
     """
-    Returns the primary LLM (Gemini 2.0 Flash).
-    Falls back to Groq if GEMINI_API_KEY is not set.
-    max_tokens=4096 fixes the cut-off response bug.
+    Returns the primary LLM (Groq Llama 3.3).
+    We use Groq for generation because it is fast and free.
+    Gemini is only used for embeddings to save RAM.
     """
+    groq_llm = _get_groq_llm()
+    if groq_llm:
+        return groq_llm
+    
+    # Absolute fallback if Groq is missing
     gemini_key = os.getenv("GEMINI_API_KEY")
     if gemini_key:
-        logger.info("[LLM] Using Gemini 2.0 Flash")
+        logger.info("[LLM] Groq missing, using Gemini 2.0 Flash")
         return ChatGoogleGenerativeAI(
             model="gemini-2.0-flash",
             google_api_key=gemini_key,
@@ -35,8 +40,7 @@ def get_llm():
             max_output_tokens=4096,
             max_retries=0,
         )
-
-    return _get_groq_llm()
+    raise RuntimeError("No LLM configured. Please set GROQ_API_KEY.")
 
 
 @lru_cache(maxsize=1)
@@ -56,8 +60,17 @@ def _get_groq_llm():
 
 
 def get_fallback_llm():
-    """Returns Groq LLM for use as a fallback, or None if unavailable."""
-    return _get_groq_llm()
+    """Returns Gemini LLM for use as a fallback, or None if unavailable."""
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if gemini_key:
+        return ChatGoogleGenerativeAI(
+            model="gemini-2.0-flash",
+            google_api_key=gemini_key,
+            temperature=0.3,
+            max_output_tokens=4096,
+            max_retries=0,
+        )
+    return None
 
 
 def invoke_with_fallback(chain_builder, inputs: dict) -> str:
@@ -76,11 +89,11 @@ def invoke_with_fallback(chain_builder, inputs: dict) -> str:
         if "429" in exc_str or "RESOURCE_EXHAUSTED" in exc_str:
             fallback = get_fallback_llm()
             if fallback:
-                logger.warning("[LLM] Gemini rate-limited — falling back to Groq")
+                logger.warning("[LLM] Groq rate-limited — falling back to Gemini")
                 chain = chain_builder(fallback)
                 return chain.invoke(inputs)
             else:
-                logger.error("[LLM] Gemini rate-limited and no Groq key configured")
+                logger.error("[LLM] Groq rate-limited and no Gemini key configured")
         raise
 
 
