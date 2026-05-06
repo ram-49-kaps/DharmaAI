@@ -162,7 +162,7 @@ async def chat(req: ChatRequest, user: dict = Depends(get_current_user)):
 
         # Retrieve sources for the response panel
         engine = get_rag_engine()
-        _, raw_results = engine.retrieve(req.message, k_final=4)
+        _, raw_results = engine.retrieve(req.message, k_final=8)
         sources = []
         seen = set()
         for r in raw_results:
