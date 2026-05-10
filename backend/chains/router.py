@@ -69,7 +69,13 @@ INTENT DEFINITIONS AND EXAMPLES:
    - "What is the difference between Dharma and modern law?"
    - "Compare Arthashastra and the Indian Contract Act"
 
-7. "follow_up" — User continues a previous conversation or asks for more detail.
+7. "conversational" — User is making small talk, greeting, or asking general non-legal questions.
+   Examples:
+   - "hello", "hi", "how are you"
+   - "who are you?", "what can you do?"
+   - "good morning"
+
+8. "follow_up" — User continues a previous conversation or asks for more detail.
    Examples:
    - "Continue"
    - "Tell me more"
@@ -79,7 +85,7 @@ INTENT DEFINITIONS AND EXAMPLES:
    - "Give more details"
    - "What else?"
 
-8. "general_qa" — EVERYTHING ELSE. This is the DEFAULT for any legal question that doesn't fit above.
+9. "general_qa" — EVERYTHING ELSE. This is the DEFAULT for any legal question that doesn't fit above.
    Examples:
    - "How does the criminal justice system work in India?"
    - "What are my rights if arrested?"
@@ -113,7 +119,7 @@ def detect_intent(message: str) -> str:
         valid = {
             "definition", "case_lookup", "statute_lookup",
             "irac_analysis", "idar_analysis", "comparative",
-            "follow_up", "general_qa",
+            "follow_up", "conversational", "general_qa",
         }
 
         # Legacy label mapping for backwards compatibility

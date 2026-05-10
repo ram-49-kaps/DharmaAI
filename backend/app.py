@@ -46,6 +46,7 @@ from chains.irac import run_irac_chain
 from chains.idar import run_idar_chain
 from chains.general_qa import run_general_chain
 from chains.follow_up import run_follow_up_chain, is_follow_up
+from chains.conversational import run_conversational_chain
 
 
 # ── Startup ───────────────────────────────────────────────────────────────────
@@ -157,29 +158,35 @@ async def chat(req: ChatRequest, user: dict = Depends(get_current_user)):
                 answer = run_idar_chain(req.message)
             elif intent == "comparative":
                 answer = run_general_chain(req.message, history_dicts)
+            elif intent == "conversational":
+                answer = run_conversational_chain(req.message)
             else:
                 answer = run_general_chain(req.message, history_dicts)
 
         # Retrieve sources for the response panel
-        engine = get_rag_engine()
-        _, raw_results = engine.retrieve(req.message, k_final=8)
         sources = []
-        seen = set()
-        for r in raw_results:
-            meta = r.get("metadata", {})
-            title = meta.get("title", "")
-            if title in seen:
-                continue
-            seen.add(title)
-            sources.append(Source(
-                title=title,
-                type=meta.get("source_type", meta.get("category", "statute")).lower(),
-                citation=meta.get("citation", ""),
-                page=meta.get("page", ""),
-                excerpt=r.get("content", "")[:200],
-            ))
+        citations = []
+        
+        # Bypass heavy RAG retrieval if it's just a conversational greeting
+        if intent != "conversational":
+            engine = get_rag_engine()
+            _, raw_results = engine.retrieve(req.message, k_final=8)
+            seen = set()
+            for r in raw_results:
+                meta = r.get("metadata", {})
+                title = meta.get("title", "")
+                if title in seen:
+                    continue
+                seen.add(title)
+                sources.append(Source(
+                    title=title,
+                    type=meta.get("source_type", meta.get("category", "statute")).lower(),
+                    citation=meta.get("citation", ""),
+                    page=meta.get("page", ""),
+                    excerpt=r.get("content", "")[:200],
+                ))
 
-        citations = _sources_to_citations(sources)
+            citations = _sources_to_citations(sources)
 
         uid = user.get("uid", "anonymous")
         if req.session_id:
