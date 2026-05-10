@@ -73,8 +73,11 @@ def _embed_query(query: str) -> List[float]:
     try:
         return lc_embeds.embed_query(query)
     except Exception as exc:
-        if "429" in str(exc) or "Rate Limited" in str(exc):
-            raise RuntimeError("GEMINI_RATE_LIMITED")
+        exc_str = str(exc)
+        if "429" in exc_str or "RESOURCE_EXHAUSTED" in exc_str or "Rate Limited" in exc_str:
+            logger.warning("[Embed] Gemini Rate Limited (429) during query embed. Proceeding without context.")
+            # Return a zero vector of correct dimension (768 for text-embedding-004)
+            return [0.0] * 768
         raise
 
 

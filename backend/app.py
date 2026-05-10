@@ -197,13 +197,22 @@ async def chat(req: ChatRequest, user: dict = Depends(get_current_user)):
 
     except Exception as exc:
         logger.error(f"[Chat] Error: {exc}", exc_info=True)
-        # Graceful handling for rate-limit / quota errors
         exc_str = str(exc)
-        if "429" in exc_str or "RESOURCE_EXHAUSTED" in exc_str:
-            raise HTTPException(
-                status_code=429,
-                detail="The AI service is temporarily rate-limited. Please wait a minute and try again.",
-            )
+        
+        # Check for specific rate limit indicators
+        is_rate_limited = any(x in exc_str for x in ["429", "RESOURCE_EXHAUSTED", "Rate Limited"])
+        
+        if is_rate_limited:
+            # Check if it was specifically Gemini or Groq
+            if "google" in exc_str.lower() or "gemini" in exc_str.lower():
+                detail = "The Gemini AI service (used for legal analysis/embeddings) is temporarily rate-limited. This usually happens during background database seeding. Please try again in 30-60 seconds."
+            elif "groq" in exc_str.lower():
+                detail = "The Groq AI service (used for fast generation) is temporarily rate-limited. Please wait a moment."
+            else:
+                detail = "DharmaAI is currently experiencing high traffic or AI rate limits. Please wait a minute and try again."
+            
+            raise HTTPException(status_code=429, detail=detail)
+            
         raise HTTPException(
             status_code=500,
             detail="An internal error occurred while processing your request. Please try again.",
