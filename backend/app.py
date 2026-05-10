@@ -203,15 +203,20 @@ async def chat(req: ChatRequest, user: dict = Depends(get_current_user)):
         is_rate_limited = any(x in exc_str for x in ["429", "RESOURCE_EXHAUSTED", "Rate Limited"])
         
         if is_rate_limited:
-            # Check if it was specifically Gemini or Groq
-            if "google" in exc_str.lower() or "gemini" in exc_str.lower():
-                detail = "The Gemini AI service (used for legal analysis/embeddings) is temporarily rate-limited. This usually happens during background database seeding. Please try again in 30-60 seconds."
-            elif "groq" in exc_str.lower():
-                detail = "The Groq AI service (used for fast generation) is temporarily rate-limited. Please wait a moment."
-            else:
-                detail = "DharmaAI is currently experiencing high traffic or AI rate limits. Please wait a minute and try again."
-            
-            raise HTTPException(status_code=429, detail=detail)
+            # DharmaAI Lite Mode — don't crash, just inform.
+            lite_answer = (
+                "**[DharmaAI Lite Mode Active]**\n\n"
+                "I am currently experiencing extremely high traffic or API rate limits (likely due to background database seeding). "
+                "While I cannot perform a deep legal retrieval at this exact second, I can tell you that I've received your query: "
+                f"\"{req.message[:50]}...\"\n\n"
+                "Please wait about 60 seconds for the quota to reset and try again for a full detailed analysis."
+            )
+            return ChatResponse(
+                intent="general_qa",
+                answer=lite_answer,
+                sources=[],
+                citations=[]
+            )
             
         raise HTTPException(
             status_code=500,

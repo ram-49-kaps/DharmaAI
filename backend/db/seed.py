@@ -1,15 +1,13 @@
-"""
-Database and vector store seeding for DharmaAI v2.
+import os
+os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
-Seeds:
-1. SQLite tables (glossary, cases, statutes) — kept for search API
-2. ChromaDB collections — from seed_corpus JSON files
-"""
-
+import sys
+import logging
 import hashlib
 import json
-import logging
-import os
+
+# Ensure the backend directory is in the path for local imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from db.database import get_connection
 
@@ -351,8 +349,6 @@ def seed_chromadb() -> None:
 
 
 if __name__ == "__main__":
-    import sys
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
     logging.basicConfig(level=logging.INFO)
     seed()
     seed_chromadb()

@@ -108,8 +108,13 @@ CRITICAL RULES:
 def detect_intent(message: str) -> str:
     """
     Detect the intent of a legal query.
-    Defaults to 'general_qa' for any unrecognised or ambiguous input.
+    Bypasses LLM for simple greetings to save API quota.
     """
+    msg_clean = message.strip().lower()
+    greetings = {"hello", "hi", "hey", "good morning", "good afternoon", "good evening", "namaste", "pranam"}
+    if msg_clean in greetings or (len(msg_clean) < 10 and any(g in msg_clean for g in ["hello", "hi "])):
+        return "conversational"
+
     try:
         result = invoke_with_fallback(
             lambda llm: INTENT_PROMPT | llm | StrOutputParser(),
