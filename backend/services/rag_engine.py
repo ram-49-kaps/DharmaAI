@@ -21,7 +21,7 @@ from google import genai
 import chromadb
 from chromadb.utils import embedding_functions
 from langchain_core.documents import Document
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 logger = logging.getLogger(__name__)
 
 CHROMA_PATH = os.path.join(os.path.dirname(__file__), "../db/chroma_db_v2")
@@ -32,38 +32,46 @@ EMBED_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 EMBED_DIM = 384
 
 
-class LocalEmbeddingFunction(embedding_functions.EmbeddingFunction):
-    """ChromaDB-compatible wrapper for local HuggingFace embeddings."""
+class CloudEmbeddingFunction(embedding_functions.EmbeddingFunction):
+    """ChromaDB-compatible wrapper for Cloud HuggingFace embeddings."""
 
     def __init__(self):
-        self.lc_embeds = HuggingFaceEmbeddings(
-            model_name=EMBED_MODEL,
-            model_kwargs={'device': 'cpu'}
-        )
+        hf_token = os.getenv("HUGGINGFACE_API_KEY")
+        if not hf_token:
+            logger.warning("[Embed] HUGGINGFACE_API_KEY not set — falling back to zero vectors")
+            self.lc_embeds = None
+        else:
+            self.lc_embeds = HuggingFaceInferenceAPIEmbeddings(
+                api_key=hf_token,
+                model_name=EMBED_MODEL
+            )
 
     def __call__(self, input: List[str]) -> List[List[float]]:
         """Batch-embed all texts."""
-        if not input:
-            return []
+        if not input or not self.lc_embeds:
+            return [[0.0] * EMBED_DIM for _ in input]
         try:
             return self.lc_embeds.embed_documents(input)
         except Exception as exc:
-            logger.error(f"[Embed] Batch embedding failed: {exc}")
-            # Fallback: return zero vectors so the app doesn't crash
+            logger.error(f"[Embed] Cloud embedding failed: {exc}")
             return [[0.0] * EMBED_DIM for _ in input]
 
 
 def _embed_query(query: str) -> List[float]:
     """Embed a single query string for retrieval."""
-    lc_embeds = HuggingFaceEmbeddings(
-        model_name=EMBED_MODEL,
-        model_kwargs={'device': 'cpu'}
+    hf_token = os.getenv("HUGGINGFACE_API_KEY")
+    if not hf_token:
+        return [0.0] * EMBED_DIM
+
+    lc_embeds = HuggingFaceInferenceAPIEmbeddings(
+        api_key=hf_token,
+        model_name=EMBED_MODEL
     )
     
     try:
         return lc_embeds.embed_query(query)
     except Exception as exc:
-        logger.error(f"[Embed] Query embedding failed: {exc}")
+        logger.error(f"[Embed] Cloud query embedding failed: {exc}")
         return [0.0] * EMBED_DIM
 
 
@@ -84,7 +92,7 @@ class RAGEngine:
             return
         os.makedirs(CHROMA_PATH, exist_ok=True)
         self._client = chromadb.PersistentClient(path=CHROMA_PATH)
-        self._embed_fn = LocalEmbeddingFunction()
+        self._embed_fn = CloudEmbeddingFunction()
 
         for name in COLLECTIONS:
             try:
