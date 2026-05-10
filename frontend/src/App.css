@@ -7,6 +7,82 @@
 /* ── Design Tokens ─────────────────────────────────────────────── */
 :root {
   /* Primary – Deep Indigo / Navy */
+  --primary:         #1A237E;
+  --primary-light:   #283593;
+  --primary-dark:    #0D1147;
+  --primary-surface: #1C2785;
+
+  /* Secondary – Flame Orange */
+  --secondary:       #E65100;
+  --secondary-light: #FF6D00;
+  --secondary-dim:   #BF360C;
+
+  /* Tertiary – Burnt Sienna */
+  --tertiary:        #BF360C;
+
+  /* Neutral – Warm Cream */
+  --neutral:         #FCF8F1;
+  --neutral-100:     #F5EFE5;
+  --neutral-200:     #EDE5D8;
+  --neutral-300:     #DDD4C6;
+  --neutral-400:     #C8BFB0;
+  --neutral-500:     #9E968A;
+  --neutral-600:     #6B6560;
+  --neutral-700:     #4A4540;
+
+  /* Page backgrounds */
+  --bg:              #FCF8F1;
+  --bg-elevated:     #F5EFE5;
+  --surface:         #FFFFFF;
+  --surface-2:       #F8F4EC;
+  --border:          #E0D8CC;
+  --border-light:    #EDE5D8;
+
+  /* Text on light backgrounds */
+  --text:            #1A1A1A;
+  --text-secondary:  #4A4540;
+  --text-dim:        #7A7268;
+  --text-muted:      #A69E94;
+
+  /* Text on dark backgrounds (sidebar, nav) */
+  --text-on-dark:    #FCF8F1;
+  --text-on-dark-dim:#B8B0A4;
+  --text-on-dark-muted: #7A7268;
+
+  /* Semantic */
+  --gold:            #F9A825;
+  --success:         #2E7D32;
+  --danger:          #C62828;
+  --info:            #1565C0;
+
+  /* Intent badge colors */
+  --intent-definition:     #5C6BC0;
+  --intent-caselaw:        #1565C0;
+  --intent-statute:        #2E7D32;
+  --intent-irac:           #E65100;
+  --intent-idar:           #BF360C;
+  --intent-general:        #7B1FA2;
+
+  /* Geometry */
+  --radius:          12px;
+  --radius-md:       10px;
+  --radius-sm:       8px;
+  --radius-xs:       6px;
+  --sidebar-w:       270px;
+
+  /* Typography */
+  --font-body:       'Outfit', system-ui, -apple-system, sans-serif;
+  --font-heading:    'Playfair Display', 'Georgia', serif;
+
+  /* Shadows */
+  --shadow-xs:       0 1px 2px rgba(0,0,0,0.06);
+  --shadow-sm:       0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:       0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg:       0 8px 24px rgba(0,0,0,0.1);
+}
+
+[data-theme='dark'] {
+  /* Primary – Lighter Indigo for Dark Mode */
   --primary:         #5c6bc0;
   --primary-light:   #7986cb;
   --primary-dark:    #3f51b5;
@@ -49,12 +125,6 @@
   --text-on-dark-dim:#8b949e;
   --text-on-dark-muted: #6e7681;
 
-  /* Semantic */
-  --gold:            #F9A825;
-  --success:         #2E7D32;
-  --danger:          #C62828;
-  --info:            #1565C0;
-
   /* Intent badge colors */
   --intent-definition:     #5C6BC0;
   --intent-caselaw:        #1565C0;
@@ -63,22 +133,11 @@
   --intent-idar:           #ff7043;
   --intent-general:        #ab47bc;
 
-  /* Geometry */
-  --radius:          12px;
-  --radius-md:       10px;
-  --radius-sm:       8px;
-  --radius-xs:       6px;
-  --sidebar-w:       270px;
-
-  /* Typography */
-  --font-body:       'Outfit', system-ui, -apple-system, sans-serif;
-  --font-heading:    'Playfair Display', 'Georgia', serif;
-
-  /* Shadows */
-  --shadow-xs:       0 1px 2px rgba(0,0,0,0.06);
-  --shadow-sm:       0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md:       0 4px 12px rgba(0,0,0,0.08);
-  --shadow-lg:       0 8px 24px rgba(0,0,0,0.1);
+  /* Shadows for dark mode */
+  --shadow-xs:       0 1px 2px rgba(0,0,0,0.3);
+  --shadow-sm:       0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md:       0 4px 12px rgba(0,0,0,0.5);
+  --shadow-lg:       0 8px 24px rgba(0,0,0,0.6);
 }
 
 /* ── Global Reset ──────────────────────────────────────────────── */
@@ -1249,6 +1308,9 @@ body {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    flex: 1;
+    justify-content: center;
+    margin-right: 40px; /* Offset menu button to center logo */
   }
   .mobile-backdrop {
     display: block;

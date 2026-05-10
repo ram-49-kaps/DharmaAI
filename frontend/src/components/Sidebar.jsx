@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, MessageSquare, Library, BrainCircuit, Pencil, Trash2, Download, X, Check, X as XIcon, Upload, LogOut, User } from "lucide-react";
+import { Plus, MessageSquare, Library, BrainCircuit, Pencil, Trash2, Download, X, Check, X as XIcon, Upload, LogOut, User, Sun, Moon } from "lucide-react";
 import Logo from "./Logo";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -17,6 +17,8 @@ export default function Sidebar({
   isOpen,
   onClose,
   onOpenUploader,
+  theme,
+  onToggleTheme,
 }) {
   const { user, logout } = useAuth();
   const [editingChatId, setEditingChatId] = React.useState(null);
@@ -130,6 +132,11 @@ export default function Sidebar({
       <div className="sidebar-footer">
         <button className="export-btn" onClick={onExport} disabled={isExportDisabled}>
           <Download size={16} /> Export Session
+        </button>
+
+        <button className="export-btn" onClick={onToggleTheme}>
+          {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
+          {theme === "light" ? "Dark Mode" : "Light Mode"}
         </button>
 
         {/* Admin PDF upload */}

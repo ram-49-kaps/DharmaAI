@@ -42,6 +42,13 @@ function AppContent() {
   const [error, setError] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showUploader, setShowUploader] = useState(false);
+  const [theme, setTheme] = useState(localStorage.getItem("dharma-theme") || "light");
+
+  useEffect(() => {
+    localStorage.setItem("dharma-theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme((prev) => (prev === "light" ? "dark" : "light"));
 
   const activeChat = chats.find((c) => c.id === activeChatId) || chats[0];
   const messages = activeChat.messages;
@@ -165,7 +172,7 @@ function AppContent() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="app-layout">
+    <div className="app-layout" data-theme={theme}>
       {isMobileMenuOpen && (
         <div className="mobile-backdrop" onClick={() => setIsMobileMenuOpen(false)} />
       )}
@@ -184,6 +191,8 @@ function AppContent() {
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
         onOpenUploader={() => setShowUploader(true)}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       <main className="main-area">
