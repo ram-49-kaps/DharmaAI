@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Scale, ScrollText, BookOpen, FileText, User } from "lucide-react";
+import { Scale, ScrollText, BookOpen, FileText, User, Copy, Check } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import Logo from "./Logo";
 import CitationCard from "./CitationCard";
@@ -37,6 +37,13 @@ export default function MessageBubble({ message }) {
   const [showAllSources, setShowAllSources] = useState(false);
 
   const visibleSources = showAllSources ? sources : (sources || []).slice(0, 3);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className={`bubble-wrapper ${isUser ? "user-wrapper" : "assistant-wrapper"}`}>
@@ -82,6 +89,17 @@ export default function MessageBubble({ message }) {
             )}
           </div>
         )}
+        {/* Copy Button */}
+        {!isUser && (
+          <button 
+            onClick={handleCopy}
+            style={styles.copyBtn}
+            title="Copy response"
+          >
+            {copied ? <Check size={14} color="var(--success)" /> : <Copy size={14} />}
+            <span style={{ marginLeft: "4px" }}>{copied ? "Copied" : "Copy"}</span>
+          </button>
+        )}
       </div>
 
       {viewSource && (
@@ -109,4 +127,16 @@ const styles = {
     padding: "0.25rem 0",
     fontWeight: 500,
   },
+  copyBtn: {
+    display: "flex",
+    alignItems: "center",
+    background: "none",
+    border: "none",
+    color: "var(--text-muted)",
+    cursor: "pointer",
+    fontSize: "0.75rem",
+    padding: "0.25rem 0",
+    marginTop: "0.25rem",
+    transition: "color 0.2s",
+  }
 };

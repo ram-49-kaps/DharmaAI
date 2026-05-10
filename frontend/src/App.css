@@ -7,47 +7,47 @@
 /* ── Design Tokens ─────────────────────────────────────────────── */
 :root {
   /* Primary – Deep Indigo / Navy */
-  --primary:         #1A237E;
-  --primary-light:   #283593;
-  --primary-dark:    #0D1147;
-  --primary-surface: #1C2785;
+  --primary:         #5c6bc0;
+  --primary-light:   #7986cb;
+  --primary-dark:    #3f51b5;
+  --primary-surface: #1a237e;
 
   /* Secondary – Flame Orange */
-  --secondary:       #E65100;
-  --secondary-light: #FF6D00;
-  --secondary-dim:   #BF360C;
+  --secondary:       #ff9800;
+  --secondary-light: #ffb74d;
+  --secondary-dim:   #e65100;
 
   /* Tertiary – Burnt Sienna */
-  --tertiary:        #BF360C;
+  --tertiary:        #ff7043;
 
-  /* Neutral – Warm Cream */
-  --neutral:         #FCF8F1;
-  --neutral-100:     #F5EFE5;
-  --neutral-200:     #EDE5D8;
-  --neutral-300:     #DDD4C6;
-  --neutral-400:     #C8BFB0;
-  --neutral-500:     #9E968A;
-  --neutral-600:     #6B6560;
-  --neutral-700:     #4A4540;
+  /* Neutral – Dark Theme */
+  --neutral:         #0d1117;
+  --neutral-100:     #161b22;
+  --neutral-200:     #21262d;
+  --neutral-300:     #30363d;
+  --neutral-400:     #484f58;
+  --neutral-500:     #6e7681;
+  --neutral-600:     #8b949e;
+  --neutral-700:     #c9d1d9;
 
   /* Page backgrounds */
-  --bg:              #FCF8F1;
-  --bg-elevated:     #F5EFE5;
-  --surface:         #FFFFFF;
-  --surface-2:       #F8F4EC;
-  --border:          #E0D8CC;
-  --border-light:    #EDE5D8;
+  --bg:              #0d1117;
+  --bg-elevated:     #161b22;
+  --surface:         #161b22;
+  --surface-2:       #21262d;
+  --border:          #30363d;
+  --border-light:    #484f58;
 
-  /* Text on light backgrounds */
-  --text:            #1A1A1A;
-  --text-secondary:  #4A4540;
-  --text-dim:        #7A7268;
-  --text-muted:      #A69E94;
+  /* Text on dark backgrounds */
+  --text:            #e6edf3;
+  --text-secondary:  #8b949e;
+  --text-dim:        #6e7681;
+  --text-muted:      #484f58;
 
   /* Text on dark backgrounds (sidebar, nav) */
-  --text-on-dark:    #FCF8F1;
-  --text-on-dark-dim:#B8B0A4;
-  --text-on-dark-muted: #7A7268;
+  --text-on-dark:    #e6edf3;
+  --text-on-dark-dim:#8b949e;
+  --text-on-dark-muted: #6e7681;
 
   /* Semantic */
   --gold:            #F9A825;
@@ -59,9 +59,9 @@
   --intent-definition:     #5C6BC0;
   --intent-caselaw:        #1565C0;
   --intent-statute:        #2E7D32;
-  --intent-irac:           #E65100;
-  --intent-idar:           #BF360C;
-  --intent-general:        #7B1FA2;
+  --intent-irac:           #ff9800;
+  --intent-idar:           #ff7043;
+  --intent-general:        #ab47bc;
 
   /* Geometry */
   --radius:          12px;
@@ -112,17 +112,7 @@ body {
   position: relative;
 }
 
-.mobile-header {
-  display: none;
-}
-
-.mobile-backdrop {
-  display: none;
-}
-
-.mobile-close-btn {
-  display: none;
-}
+/* Mobile Layout Styles added at end of file */
 
 .panel-page {
   flex: 1;
@@ -1225,3 +1215,73 @@ body {
   
   .panel-page { padding: 1.25rem 1rem; }
 }
+
+/* -- Mobile Layout ---------------------------------------------- */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .mobile-header {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    z-index: 900;
+  }
+  .menu-btn {
+    background: none;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    margin-right: 1rem;
+  }
+  .mobile-header-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .mobile-backdrop {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+    z-index: 950;
+  }
+  .chat-window {
+    padding: 1rem;
+  }
+  .bubble-wrapper {
+    max-width: 100%;
+  }
+  .input-area {
+    padding: 0 0.5rem 1rem;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .mobile-close-btn {
+    display: flex;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+  }
+  .sidebar-logo {
+    justify-content: space-between;
+  }
+}
+

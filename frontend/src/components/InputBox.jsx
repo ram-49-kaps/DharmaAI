@@ -48,7 +48,7 @@ export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, 
   const historyTokens = Math.ceil(historyString.length / 4);
   const systemTokens = 850; // Average injection prompt tokens
   const totalUsed = systemTokens + historyTokens + inputTokens;
-  const totalAvailable = 8192; // Llama 3 context
+  const totalAvailable = 128000; // Groq Llama 3.3 70B context window
   const percentUsed = Math.min(((totalUsed / totalAvailable) * 100), 100).toFixed(1);
 
   return (
