@@ -7,8 +7,13 @@ Uses Gemini text-embedding-004 for embeddings and ChromaDB for storage.
 
 from __future__ import annotations
 
-import logging
 import os
+os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
+
+from dotenv import load_dotenv
+load_dotenv()
+
+import logging
 import requests
 from typing import List, Optional
 
@@ -16,26 +21,24 @@ from google import genai
 import chromadb
 from chromadb.utils import embedding_functions
 from langchain_core.documents import Document
-from dotenv import load_dotenv
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
-
-load_dotenv()
+from langchain_huggingface import HuggingFaceEmbeddings
 logger = logging.getLogger(__name__)
 
 CHROMA_PATH = os.path.join(os.path.dirname(__file__), "../db/chroma_db_v2")
 
 COLLECTIONS = ["iks_texts", "modern_law", "case_law", "glossary"]
 
-EMBED_MODEL = "models/text-embedding-004"
+EMBED_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+EMBED_DIM = 384
 
 
-class GeminiEmbeddingFunction(embedding_functions.EmbeddingFunction):
-    """ChromaDB-compatible wrapper for Gemini text-embedding-004."""
+class LocalEmbeddingFunction(embedding_functions.EmbeddingFunction):
+    """ChromaDB-compatible wrapper for local HuggingFace embeddings."""
 
-    def __init__(self, api_key: str):
-        self.lc_embeds = GoogleGenerativeAIEmbeddings(
-            model=EMBED_MODEL,
-            google_api_key=api_key
+    def __init__(self):
+        self.lc_embeds = HuggingFaceEmbeddings(
+            model_name=EMBED_MODEL,
+            model_kwargs={'device': 'cpu'}
         )
 
     def __call__(self, input: List[str]) -> List[List[float]]:
@@ -46,39 +49,22 @@ class GeminiEmbeddingFunction(embedding_functions.EmbeddingFunction):
             return self.lc_embeds.embed_documents(input)
         except Exception as exc:
             logger.error(f"[Embed] Batch embedding failed: {exc}")
-            if "429" in str(exc) or "Rate Limited" in str(exc):
-                logger.error("[Embed] Gemini Rate Limited (429) during batch embed")
             # Fallback: return zero vectors so the app doesn't crash
-            return [[0.0] * 768 for _ in input]
-
-
-def _get_embedding_fn() -> GeminiEmbeddingFunction:
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        raise RuntimeError("GEMINI_API_KEY not set — required for RAG embeddings")
-    return GeminiEmbeddingFunction(api_key=api_key)
+            return [[0.0] * EMBED_DIM for _ in input]
 
 
 def _embed_query(query: str) -> List[float]:
     """Embed a single query string for retrieval."""
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        raise RuntimeError("GEMINI_API_KEY not set")
-    
-    lc_embeds = GoogleGenerativeAIEmbeddings(
-        model=EMBED_MODEL,
-        google_api_key=api_key
+    lc_embeds = HuggingFaceEmbeddings(
+        model_name=EMBED_MODEL,
+        model_kwargs={'device': 'cpu'}
     )
     
     try:
         return lc_embeds.embed_query(query)
     except Exception as exc:
-        exc_str = str(exc)
-        if "429" in exc_str or "RESOURCE_EXHAUSTED" in exc_str or "Rate Limited" in exc_str:
-            logger.warning("[Embed] Gemini Rate Limited (429) during query embed. Proceeding without context.")
-            # Return a zero vector of correct dimension (768 for text-embedding-004)
-            return [0.0] * 768
-        raise
+        logger.error(f"[Embed] Query embedding failed: {exc}")
+        return [0.0] * EMBED_DIM
 
 
 class RAGEngine:
@@ -98,11 +84,7 @@ class RAGEngine:
             return
         os.makedirs(CHROMA_PATH, exist_ok=True)
         self._client = chromadb.PersistentClient(path=CHROMA_PATH)
-        gemini_key = os.getenv("GEMINI_API_KEY")
-        if not gemini_key:
-            raise RuntimeError("GEMINI_API_KEY not set. Cannot run RAG embeddings.")
-            
-        self._embed_fn = _get_embedding_fn()
+        self._embed_fn = LocalEmbeddingFunction()
 
         for name in COLLECTIONS:
             try:
