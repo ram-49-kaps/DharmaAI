@@ -17,6 +17,7 @@ import chromadb
 from chromadb.utils import embedding_functions
 from langchain_core.documents import Document
 from dotenv import load_dotenv
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -25,33 +26,28 @@ CHROMA_PATH = os.path.join(os.path.dirname(__file__), "../db/chroma_db_v2")
 
 COLLECTIONS = ["iks_texts", "modern_law", "case_law", "glossary"]
 
-EMBED_MODEL = "gemini-embedding-001"
+EMBED_MODEL = "models/text-embedding-004"
 
 
 class GeminiEmbeddingFunction(embedding_functions.EmbeddingFunction):
     """ChromaDB-compatible wrapper for Gemini text-embedding-004."""
 
     def __init__(self, api_key: str):
-        self.api_key = api_key
+        self.lc_embeds = GoogleGenerativeAIEmbeddings(
+            model=EMBED_MODEL,
+            google_api_key=api_key
+        )
 
     def __call__(self, input: List[str]) -> List[List[float]]:
-        """Batch-embed all texts in a single API call to conserve quota."""
+        """Batch-embed all texts."""
         if not input:
             return []
         try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{EMBED_MODEL}:batchEmbedContents?key={self.api_key}"
-            requests_data = [{"model": f"models/{EMBED_MODEL}", "content": {"parts": [{"text": text}]}} for text in input]
-            
-            resp = requests.post(url, json={"requests": requests_data}, timeout=15)
-            if resp.status_code == 429:
-                logger.error("[Embed] Gemini Rate Limited (429) during batch embed")
-                return [[0.0] * 768 for _ in input]
-            
-            resp.raise_for_status()
-            data = resp.json()
-            return [e["values"] for e in data.get("embeddings", [])]
+            return self.lc_embeds.embed_documents(input)
         except Exception as exc:
             logger.error(f"[Embed] Batch embedding failed: {exc}")
+            if "429" in str(exc) or "Rate Limited" in str(exc):
+                logger.error("[Embed] Gemini Rate Limited (429) during batch embed")
             # Fallback: return zero vectors so the app doesn't crash
             return [[0.0] * 768 for _ in input]
 
@@ -69,16 +65,17 @@ def _embed_query(query: str) -> List[float]:
     if not api_key:
         raise RuntimeError("GEMINI_API_KEY not set")
     
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{EMBED_MODEL}:embedContent?key={api_key}"
-    resp = requests.post(
-        url,
-        json={"model": f"models/{EMBED_MODEL}", "content": {"parts": [{"text": query}]}},
-        timeout=5  # Fail fast! No hanging!
+    lc_embeds = GoogleGenerativeAIEmbeddings(
+        model=EMBED_MODEL,
+        google_api_key=api_key
     )
-    if resp.status_code == 429:
-        raise RuntimeError("GEMINI_RATE_LIMITED")
-    resp.raise_for_status()
-    return resp.json()["embedding"]["values"]
+    
+    try:
+        return lc_embeds.embed_query(query)
+    except Exception as exc:
+        if "429" in str(exc) or "Rate Limited" in str(exc):
+            raise RuntimeError("GEMINI_RATE_LIMITED")
+        raise
 
 
 class RAGEngine:
@@ -99,15 +96,10 @@ class RAGEngine:
         os.makedirs(CHROMA_PATH, exist_ok=True)
         self._client = chromadb.PersistentClient(path=CHROMA_PATH)
         gemini_key = os.getenv("GEMINI_API_KEY")
-        if gemini_key:
-            self._embed_fn = _get_embedding_fn()
-        else:
-            # Fall back to sentence-transformers if no Gemini key
-            from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
-            self._embed_fn = SentenceTransformerEmbeddingFunction(
-                model_name="all-MiniLM-L6-v2"
-            )
-            logger.warning("[RAG] Using fallback sentence-transformer embeddings")
+        if not gemini_key:
+            raise RuntimeError("GEMINI_API_KEY not set. Cannot run RAG embeddings.")
+            
+        self._embed_fn = _get_embedding_fn()
 
         for name in COLLECTIONS:
             try:
