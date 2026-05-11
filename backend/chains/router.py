@@ -116,7 +116,7 @@ def detect_intent(message: str) -> str:
         return "conversational"
 
     try:
-        result = invoke_with_fallback(
+        result = invoke_fast(
             lambda llm: INTENT_PROMPT | llm | StrOutputParser(),
             {"message": message},
         ).strip().lower()

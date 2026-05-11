@@ -45,19 +45,34 @@ def _get_groq_llm():
     )
 
 
-def invoke_with_fallback(chain_builder, inputs: dict) -> str:
+@lru_cache(maxsize=1)
+def get_fast_llm():
     """
-    Run the chain using Groq.
+    Returns a fast, lightweight LLM (Llama 3 8B).
+    Used for routing and intent detection to save the 70B quota for reasoning.
     """
-    llm = get_llm()
+    groq_key = os.getenv("GROQ_API_KEY")
+    if not groq_key:
+        return get_llm() # Fallback to primary
+    
+    return ChatGroq(
+        model="llama-3.1-8b-instant",
+        temperature=0.1,
+        groq_api_key=groq_key,
+        max_retries=3,
+    )
+
+
+def invoke_fast(chain_builder, inputs: dict) -> str:
+    """Run a chain using the high-limit 8B model."""
+    llm = get_fast_llm()
     chain = chain_builder(llm)
     return chain.invoke(inputs)
 
 
-def get_gemini_client() -> genai.Client:
-    """Direct Gemini client — kept only as a backup for non-critical tasks."""
-    gemini_key = os.getenv("GEMINI_API_KEY")
-    if not gemini_key:
-        raise RuntimeError("GEMINI_API_KEY not set")
-    return genai.Client(api_key=gemini_key)
+def invoke_with_fallback(chain_builder, inputs: dict) -> str:
+    """Run the reasoning chain using the 70B model."""
+    llm = get_llm()
+    chain = chain_builder(llm)
+    return chain.invoke(inputs)
 
