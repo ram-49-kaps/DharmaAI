@@ -65,7 +65,7 @@ export default function Sidebar({
 
       {/* New Chat */}
       <button className="new-chat-btn" onClick={onNewChat}>
-        <span><Plus size={18} /></span> New Consultation
+        <span><Plus size={18} /></span> New Chat
       </button>
 
       {/* Navigation */}
