@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { Upload, FileText, CheckCircle, AlertCircle, X } from "lucide-react";
+import { Upload, FileText, CheckCircle, AlertCircle, X, Globe, Link as LinkIcon } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
 const CATEGORIES = [
@@ -12,7 +12,9 @@ const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 export default function PDFUploader({ onClose }) {
   const { token } = useAuth();
+  const [activeTab, setActiveTab] = useState("pdf"); // pdf | link
   const [file, setFile] = useState(null);
+  const [url, setUrl] = useState("");
   const [category, setCategory] = useState("iks_texts");
   const [status, setStatus] = useState("idle"); // idle | uploading | success | error
   const [result, setResult] = useState(null);
@@ -31,22 +33,36 @@ export default function PDFUploader({ onClose }) {
   };
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (activeTab === "pdf" && !file) return;
+    if (activeTab === "link" && !url) return;
+    
     setStatus("uploading");
     setErrorMsg("");
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("category", category);
-
     try {
-      const resp = await fetch(`${API_URL}/api/ingest`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
+      let resp;
+      if (activeTab === "pdf") {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("category", category);
+        resp = await fetch(`${API_URL}/api/ingest`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        });
+      } else {
+        const formData = new FormData();
+        formData.append("url", url);
+        formData.append("category", category);
+        resp = await fetch(`${API_URL}/api/ingest-url`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        });
+      }
+
       const data = await resp.json();
-      if (!resp.ok) throw new Error(data.detail || "Upload failed");
+      if (!resp.ok) throw new Error(data.detail || "Ingestion failed");
       setResult(data);
       setStatus("success");
     } catch (err) {
@@ -59,45 +75,71 @@ export default function PDFUploader({ onClose }) {
     <div style={styles.overlay} onClick={onClose}>
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div style={styles.header}>
-          <strong>Upload Legal Document (Admin)</strong>
+          <strong>Add Knowledge (Admin)</strong>
           <button style={styles.closeBtn} onClick={onClose}><X size={18} /></button>
+        </div>
+
+        {/* Tabs */}
+        <div style={styles.tabs}>
+          <button 
+            style={{ ...styles.tab, borderBottom: activeTab === "pdf" ? "2px solid var(--primary)" : "none", color: activeTab === "pdf" ? "var(--primary)" : "#666" }}
+            onClick={() => { setActiveTab("pdf"); setStatus("idle"); }}
+          >
+            <FileText size={16} /> Upload PDF
+          </button>
+          <button 
+            style={{ ...styles.tab, borderBottom: activeTab === "link" ? "2px solid var(--primary)" : "none", color: activeTab === "link" ? "var(--primary)" : "#666" }}
+            onClick={() => { setActiveTab("link"); setStatus("idle"); }}
+          >
+            <Globe size={16} /> Add Link
+          </button>
         </div>
 
         <div style={styles.body}>
           {status === "success" ? (
             <div style={styles.success}>
               <CheckCircle size={40} color="#10b981" />
-              <p style={styles.successTitle}>Ingestion Complete</p>
+              <p style={styles.successTitle}>Successfully Ingested</p>
               <p>{result.chunks_created} chunks added to <strong>{result.collection}</strong></p>
               <p style={styles.filename}>{result.filename}</p>
-              <button style={styles.btn} onClick={() => { setFile(null); setStatus("idle"); }}>
-                Upload Another
+              <button style={styles.btn} onClick={() => { setFile(null); setUrl(""); setStatus("idle"); }}>
+                Add More
               </button>
             </div>
           ) : (
             <>
-              <div
-                style={{ ...styles.dropzone, borderColor: file ? "var(--primary)" : "#d1d5db" }}
-                onClick={() => inputRef.current?.click()}
-              >
-                <input ref={inputRef} type="file" accept=".pdf" hidden onChange={handleFile} />
-                {file ? (
-                  <>
-                    <FileText size={32} color="var(--primary)" />
-                    <p style={styles.filename}>{file.name}</p>
-                    <p style={styles.filesize}>{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                  </>
-                ) : (
-                  <>
-                    <Upload size={32} color="#9ca3af" />
-                    <p style={{ color: "#6b7280", margin: "0.5rem 0 0" }}>
-                      Click to select PDF
-                    </p>
-                  </>
-                )}
-              </div>
+              {activeTab === "pdf" ? (
+                <div
+                  style={{ ...styles.dropzone, borderColor: file ? "var(--primary)" : "#d1d5db" }}
+                  onClick={() => inputRef.current?.click()}
+                >
+                  <input ref={inputRef} type="file" accept=".pdf" hidden onChange={handleFile} />
+                  {file ? (
+                    <>
+                      <FileText size={32} color="var(--primary)" />
+                      <p style={styles.filename}>{file.name}</p>
+                      <p style={styles.filesize}>{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={32} color="#9ca3af" />
+                      <p style={{ color: "#6b7280", margin: "0.5rem 0 0" }}>Click to select PDF</p>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <div style={styles.linkInputContainer}>
+                  <LinkIcon size={20} color="#9ca3af" style={{ marginLeft: "10px" }} />
+                  <input 
+                    style={styles.urlInput}
+                    placeholder="https://example.com/legal-document"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                  />
+                </div>
+              )}
 
-              <label style={styles.label}>Collection</label>
+              <label style={styles.label}>Collection (Where to store this?)</label>
               <select style={styles.select} value={category} onChange={(e) => setCategory(e.target.value)}>
                 {CATEGORIES.map((c) => (
                   <option key={c.value} value={c.value}>{c.label}</option>
@@ -112,11 +154,11 @@ export default function PDFUploader({ onClose }) {
               )}
 
               <button
-                style={{ ...styles.btn, opacity: !file || status === "uploading" ? 0.6 : 1 }}
-                disabled={!file || status === "uploading"}
+                style={{ ...styles.btn, opacity: (activeTab === "pdf" && !file) || (activeTab === "link" && !url) || status === "uploading" ? 0.6 : 1 }}
+                disabled={(activeTab === "pdf" && !file) || (activeTab === "link" && !url) || status === "uploading"}
                 onClick={handleUpload}
               >
-                {status === "uploading" ? "Uploading…" : "Ingest PDF"}
+                {status === "uploading" ? "Processing…" : activeTab === "pdf" ? "Ingest PDF" : "Scrape Link"}
               </button>
             </>
           )}
@@ -133,17 +175,30 @@ const styles = {
   },
   modal: {
     background: "#fff", borderRadius: "12px", width: "100%", maxWidth: "480px",
-    boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+    boxShadow: "0 20px 60px rgba(0,0,0,0.3)", overflow: "hidden",
   },
   header: {
     display: "flex", justifyContent: "space-between", alignItems: "center",
     padding: "1rem 1.25rem", borderBottom: "1px solid #e5e7eb", fontSize: "0.95rem",
+  },
+  tabs: {
+    display: "flex", borderBottom: "1px solid #e5e7eb",
+  },
+  tab: {
+    flex: 1, padding: "0.75rem", background: "none", border: "none", cursor: "pointer",
+    fontSize: "0.85rem", fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
   },
   closeBtn: { background: "none", border: "none", cursor: "pointer", color: "#6b7280" },
   body: { padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem" },
   dropzone: {
     border: "2px dashed", borderRadius: "10px", padding: "2rem",
     textAlign: "center", cursor: "pointer", transition: "border-color 0.2s",
+  },
+  linkInputContainer: {
+    display: "flex", alignItems: "center", border: "1px solid #d1d5db", borderRadius: "8px", overflow: "hidden",
+  },
+  urlInput: {
+    flex: 1, padding: "0.75rem", border: "none", outline: "none", fontSize: "0.875rem",
   },
   filename: { margin: "0.25rem 0 0", fontSize: "0.875rem", color: "#374151", fontWeight: 500 },
   filesize: { margin: 0, fontSize: "0.75rem", color: "#9ca3af" },

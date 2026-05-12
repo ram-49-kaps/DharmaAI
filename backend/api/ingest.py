@@ -16,6 +16,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from auth.firebase_auth import get_admin_user
 from models.schemas import IngestResponse
 from services.pdf_ingestion import PDFIngestor
+from services.url_ingestion import URLIngestor
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -31,7 +32,7 @@ async def ingest_pdf(
 ):
     """
     Ingest a PDF into the specified ChromaDB collection.
-    Requires admin Firebase UID.
+    Requires admin Firebase UID or email.
     """
     if category not in VALID_CATEGORIES:
         raise HTTPException(
@@ -67,4 +68,37 @@ async def ingest_pdf(
         chunks_created=chunks_count,
         collection=category,
         filename=file.filename,
+    )
+
+
+@router.post("/api/ingest-url", response_model=IngestResponse)
+async def ingest_url(
+    url: str = Form(...),
+    category: str = Form(...),
+    _user: dict = Depends(get_admin_user),
+):
+    """
+    Scrape a URL and ingest its content.
+    Requires admin privileges.
+    """
+    if category not in VALID_CATEGORIES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid category '{category}'. Must be one of: {sorted(VALID_CATEGORIES)}",
+        )
+
+    try:
+        ingestor = URLIngestor()
+        chunks_count = ingestor.ingest(url, category)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    except Exception as exc:
+        logger.error(f"[Ingest-URL] Error ingesting {url}: {exc}")
+        raise HTTPException(status_code=500, detail=f"URL ingestion failed: {exc}")
+
+    return IngestResponse(
+        status="success",
+        chunks_created=chunks_count,
+        collection=category,
+        filename=url,
     )
