@@ -37,6 +37,7 @@ function AppContent() {
   ]);
   const [activeChatId, setActiveChatId] = useState("initial");
   const [isLoadingReply, setIsLoadingReply] = useState(false);
+  const [abortController, setAbortController] = useState(null);
   const [activePanel, setActivePanel] = useState("chat");
   const [prefillText, setPrefillText] = useState("");
   const [error, setError] = useState("");
@@ -74,7 +75,21 @@ function AppContent() {
     );
   };
 
+  const handleStop = () => {
+    if (abortController) {
+      abortController.abort();
+      setAbortController(null);
+      setIsLoadingReply(false);
+      setError("Response cancelled by user.");
+    }
+  };
+
   const handleSend = async (text) => {
+    if (isLoadingReply) {
+      handleStop();
+      return;
+    }
+
     const userMsg = { role: "user", content: text };
     const updatedMessages = [...messages, userMsg];
 
@@ -88,13 +103,16 @@ function AppContent() {
     setError("");
     setActivePanel("chat");
 
+    const controller = new AbortController();
+    setAbortController(controller);
+
     const history = updatedMessages.slice(-12).map((m) => ({
       role: m.role,
       content: m.content,
     }));
 
     try {
-      const response = await sendMessage(text, history, activeChatId);
+      const response = await sendMessage(text, history, activeChatId, controller.signal);
       updateActiveChat(
         [
           ...updatedMessages,
@@ -109,6 +127,10 @@ function AppContent() {
         newTitle
       );
     } catch (err) {
+      if (err.name === "AbortError" || err.message === "canceled") {
+        console.log("Request aborted");
+        return;
+      }
       const errText =
         err?.response?.data?.detail ||
         "Backend error. Is your FastAPI server running on port 8000?";
@@ -119,6 +141,7 @@ function AppContent() {
       );
     } finally {
       setIsLoadingReply(false);
+      setAbortController(null);
     }
   };
 

@@ -17,8 +17,12 @@ export const setAuthToken = (token) => {
   }
 };
 
-export const sendMessage = async (message, history = [], sessionId = null) => {
-  const { data } = await API.post("/chat", { message, history, session_id: sessionId });
+export const sendMessage = async (message, history = [], sessionId = null, signal = null) => {
+  const { data } = await API.post(
+    "/chat", 
+    { message, history, session_id: sessionId },
+    { signal }
+  );
   return data; // { intent, answer, sources, citations }
 };
 

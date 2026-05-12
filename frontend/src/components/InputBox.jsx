@@ -1,11 +1,12 @@
 import React, { useState, useRef } from "react";
+import { Square } from "lucide-react";
 
 const QUICK_PROMPTS = [
   "What is Dharma in Indian law?",
   "Explain Kesavananda Bharati case",
   "What does Article 21 say?",
   "Apply IRAC: A minor signed a contract",
-  "What is mens rea?",
+  "What is mns rca?",
 ];
 
 export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, messages = [], onCompactContext }) {
@@ -23,8 +24,12 @@ export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, 
   }, [prefillText, onPrefillUsed]);
 
   const handleSend = () => {
+    if (loading) {
+      onSend(""); // Triggers handleStop in App.js because loading is true
+      return;
+    }
     const trimmed = text.trim();
-    if (!trimmed || loading) return;
+    if (!trimmed) return;
     onSend(trimmed);
     setText("");
     if (textareaRef.current) textareaRef.current.style.height = "auto";
@@ -71,10 +76,14 @@ export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, 
           value={text}
           onChange={handleInput}
           onKeyDown={handleKeyDown}
-          disabled={loading}
         />
-        <button className="send-btn" onClick={handleSend} disabled={!text.trim() || loading}>
-          {loading ? <span className="spinner" /> : "➤"}
+        <button 
+          className={`send-btn ${loading ? "stop-mode" : ""}`} 
+          onClick={handleSend} 
+          disabled={!text.trim() && !loading}
+          title={loading ? "Stop generating" : "Send message"}
+        >
+          {loading ? <Square size={16} fill="currentColor" /> : "➤"}
         </button>
       </div>
 
