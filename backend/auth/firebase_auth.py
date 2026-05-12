@@ -108,17 +108,24 @@ async def get_current_user(
 
 
 async def get_admin_user(user: dict = Depends(get_current_user)) -> dict:
-    """Dependency that additionally checks user is in ADMIN_USER_IDS."""
+    """Dependency that checks user is in ADMIN_USER_IDS or ADMIN_EMAILS."""
     admin_ids_raw = os.getenv("ADMIN_USER_IDS", "")
+    admin_emails_raw = os.getenv("ADMIN_EMAILS", "")
+    
     admin_ids = {uid.strip() for uid in admin_ids_raw.split(",") if uid.strip()}
+    admin_emails = {email.strip().lower() for email in admin_emails_raw.split(",") if email.strip()}
 
     # In dev mode or if no admins configured, allow all
-    if not admin_ids or user.get("uid") == "dev_user":
+    if (not admin_ids and not admin_emails) or user.get("uid") == "dev_user":
         return user
 
-    if user.get("uid") not in admin_ids:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required",
-        )
-    return user
+    user_email = user.get("email", "").lower()
+    user_uid = user.get("uid", "")
+
+    if user_uid in admin_ids or user_email in admin_emails:
+        return user
+
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Admin access required",
+    )
