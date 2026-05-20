@@ -11,7 +11,7 @@ const CATEGORIES = [
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 export default function PDFUploader({ onClose }) {
-  const { token } = useAuth();
+  const { user, token } = useAuth();
   const [activeTab, setActiveTab] = useState("pdf"); // pdf | link
   const [file, setFile] = useState(null);
   const [url, setUrl] = useState("");
@@ -40,6 +40,7 @@ export default function PDFUploader({ onClose }) {
     setErrorMsg("");
 
     try {
+      const currentToken = user ? await user.getIdToken() : token;
       let resp;
       if (activeTab === "pdf") {
         const formData = new FormData();
@@ -47,7 +48,7 @@ export default function PDFUploader({ onClose }) {
         formData.append("category", category);
         resp = await fetch(`${API_URL}/api/ingest`, {
           method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${currentToken}` },
           body: formData,
         });
       } else {
@@ -56,7 +57,7 @@ export default function PDFUploader({ onClose }) {
         formData.append("category", category);
         resp = await fetch(`${API_URL}/api/ingest-url`, {
           method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${currentToken}` },
           body: formData,
         });
       }

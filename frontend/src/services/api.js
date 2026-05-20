@@ -8,13 +8,22 @@ const API = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Attach Firebase auth token to every request
-export const setAuthToken = (token) => {
-  if (token) {
-    API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-  } else {
-    delete API.defaults.headers.common["Authorization"];
+import { auth } from "../firebase/config";
+
+// Attach Firebase auth token to every request using an interceptor
+API.interceptors.request.use(async (config) => {
+  if (auth.currentUser) {
+    const token = await auth.currentUser.getIdToken();
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
   }
+  return config;
+}, (error) => Promise.reject(error));
+
+// Legacy helper for App.js - now handled by interceptor
+export const setAuthToken = (token) => {
+  // No-op
 };
 
 export const sendMessage = async (message, history = [], sessionId = null, signal = null) => {
