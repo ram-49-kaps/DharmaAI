@@ -54,7 +54,7 @@ async def ingest_pdf(
 
     try:
         ingestor = PDFIngestor()
-        chunks_count = ingestor.ingest(tmp_path, category)
+        chunks_count = ingestor.ingest(tmp_path, category, original_filename=file.filename)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
     except Exception as exc:

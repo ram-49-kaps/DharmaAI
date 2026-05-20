@@ -160,10 +160,10 @@ class PDFIngestor:
         engine = get_rag_engine()
         documents = [text for text, _, _ in chunks]
 
-        # Generate stable IDs based on content hash
+        # Generate stable IDs based on content hash + index to guarantee uniqueness
         ids = [
-            f"{filename}_{hashlib.md5(doc.encode()).hexdigest()[:12]}"
-            for doc in documents
+            f"{filename}_{i}_{hashlib.md5(doc.encode()).hexdigest()[:12]}"
+            for i, doc in enumerate(documents)
         ]
 
         count = engine.add_documents(
@@ -175,7 +175,7 @@ class PDFIngestor:
         logger.info(f"[PDF] Stored {count} chunks in '{collection_name}'")
         return count
 
-    def ingest(self, pdf_path: str, category: str) -> int:
+    def ingest(self, pdf_path: str, category: str, original_filename: str = None) -> int:
         """
         Full ingestion pipeline: extract → chunk → tag → store.
         Returns number of chunks stored.
@@ -184,7 +184,7 @@ class PDFIngestor:
         if not path.exists():
             raise FileNotFoundError(f"PDF not found: {pdf_path}")
 
-        filename = path.stem
+        filename = Path(original_filename).stem if original_filename else path.stem
         pages = self.extract_with_metadata(str(path))
 
         if not pages:
