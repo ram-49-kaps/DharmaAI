@@ -29,7 +29,7 @@ langchain-community>=0.2.0
 
 
 # ── PDF ingestion ─────────────────────────────────────────────────────────────
-pdfplumber>=0.10.3
+pypdf>=4.0.0
 
 # ── Firebase Admin SDK ───────────────────────────────────────────────────────
 firebase-admin>=6.3.0

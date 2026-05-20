@@ -13,7 +13,7 @@ import re
 from pathlib import Path
 from typing import List, Tuple
 
-import pdfplumber
+import pypdf
 
 from services.rag_engine import get_rag_engine
 
@@ -46,15 +46,15 @@ class PDFIngestor:
         self, pdf_path: str
     ) -> List[Tuple[str, int]]:
         """
-        Extract text page-by-page using pdfplumber.
+        Extract text page-by-page using pypdf.
         Returns list of (page_text, page_number) tuples.
         """
         pages = []
-        with pdfplumber.open(pdf_path) as pdf:
-            for i, page in enumerate(pdf.pages, start=1):
-                text = page.extract_text()
-                if text and text.strip():
-                    pages.append((text.strip(), i))
+        reader = pypdf.PdfReader(pdf_path)
+        for i, page in enumerate(reader.pages, start=1):
+            text = page.extract_text()
+            if text and text.strip():
+                pages.append((text.strip(), i))
         logger.info(f"[PDF] Extracted {len(pages)} pages from {pdf_path}")
         return pages
 
