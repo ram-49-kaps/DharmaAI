@@ -47,13 +47,26 @@ class CloudEmbeddingFunction(embedding_functions.EmbeddingFunction):
             )
 
     def __call__(self, input: List[str]) -> List[List[float]]:
-        """Batch-embed all texts."""
+        """Batch-embed all texts to avoid 'Request Entity Too Large' errors."""
         if not input or not self.lc_embeds:
             return [[0.0] * EMBED_DIM for _ in input]
+        
+        batch_size = 32
+        embeddings = []
         try:
-            return self.lc_embeds.embed_documents(input)
+            for i in range(0, len(input), batch_size):
+                batch = input[i : i + batch_size]
+                batch_embeds = self.lc_embeds.embed_documents(batch)
+                
+                # Check for API error response disguised as a dictionary
+                if isinstance(batch_embeds, dict) and "error" in batch_embeds:
+                    raise ValueError(f"HuggingFace API error: {batch_embeds['error']}")
+                
+                embeddings.extend(batch_embeds)
+            return embeddings
         except Exception as exc:
             logger.error(f"[Embed] Cloud embedding failed: {exc}")
+            # Fallback to zero vectors so the ingestion doesn't crash entirely
             return [[0.0] * EMBED_DIM for _ in input]
 
 
