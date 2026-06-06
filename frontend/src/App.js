@@ -132,27 +132,74 @@ function AppContent() {
     setAuthToken(token);
   }, [token]);
 
-  const [chats, setChats] = useState(() => {
-    const saved = localStorage.getItem("dharma-chats");
-    return saved ? JSON.parse(saved) : [{ id: "initial", title: "New Chat", messages: [] }];
+  const [session, setSession] = useState({
+    userId: null,
+    chats: [{ id: "initial", title: "New Chat", messages: [] }],
+    activeChatId: "initial",
   });
-  const [activeChatId, setActiveChatId] = useState(() => {
-    const saved = localStorage.getItem("dharma-active-chat-id");
-    return saved || "initial";
-  });
+  const { chats, activeChatId } = session;
 
   useEffect(() => {
-    localStorage.setItem("dharma-chats", JSON.stringify(chats));
-  }, [chats]);
+    const currentUid = user ? user.uid : null;
+    if (session.userId !== currentUid) {
+      if (currentUid) {
+        let savedChats = localStorage.getItem(`dharma-chats-${currentUid}`);
+        let savedActiveId = localStorage.getItem(`dharma-active-chat-id-${currentUid}`);
+        
+        // Migrate legacy single-user chats to user-scoped keys
+        if (!savedChats) {
+          const legacyChats = localStorage.getItem("dharma-chats");
+          const legacyActiveId = localStorage.getItem("dharma-active-chat-id");
+          if (legacyChats) {
+            savedChats = legacyChats;
+            savedActiveId = legacyActiveId;
+            localStorage.setItem(`dharma-chats-${currentUid}`, legacyChats);
+            if (legacyActiveId) {
+              localStorage.setItem(`dharma-active-chat-id-${currentUid}`, legacyActiveId);
+            }
+            localStorage.removeItem("dharma-chats");
+            localStorage.removeItem("dharma-active-chat-id");
+          }
+        }
+
+        setSession({
+          userId: currentUid,
+          chats: savedChats ? JSON.parse(savedChats) : [{ id: "initial", title: "New Chat", messages: [] }],
+          activeChatId: savedActiveId || "initial",
+        });
+      } else {
+        setSession({
+          userId: null,
+          chats: [{ id: "initial", title: "New Chat", messages: [] }],
+          activeChatId: "initial",
+        });
+      }
+    }
+  }, [user, session.userId]);
 
   useEffect(() => {
-    localStorage.setItem("dharma-active-chat-id", activeChatId);
-  }, [activeChatId]);
+    if (user && session.userId === user.uid) {
+      localStorage.setItem(`dharma-chats-${user.uid}`, JSON.stringify(session.chats));
+      localStorage.setItem(`dharma-active-chat-id-${user.uid}`, session.activeChatId);
+    }
+  }, [session, user]);
 
   // Check if user level profile exists, if not, show select modal
   useEffect(() => {
     if (user && !showSplash) {
-      const profile = localStorage.getItem("dharma-profile");
+      const userProfileKey = `dharma-profile-${user.uid}`;
+      let profile = localStorage.getItem(userProfileKey);
+      
+      // Migrate legacy profile
+      if (!profile) {
+        const legacyProfile = localStorage.getItem("dharma-profile");
+        if (legacyProfile) {
+          profile = legacyProfile;
+          localStorage.setItem(userProfileKey, legacyProfile);
+          localStorage.removeItem("dharma-profile");
+        }
+      }
+
       if (!profile) {
         setShowLevelModal(true);
       } else {
@@ -260,11 +307,12 @@ function AppContent() {
   // ── Helpers ────────────────────────────────────────────────────────────────
 
   const updateActiveChat = (newMessages, newTitle = activeChat.title) => {
-    setChats((prev) =>
-      prev.map((c) =>
-        c.id === activeChatId ? { ...c, messages: newMessages, title: newTitle } : c
-      )
-    );
+    setSession((prev) => ({
+      ...prev,
+      chats: prev.chats.map((c) =>
+        c.id === prev.activeChatId ? { ...c, messages: newMessages, title: newTitle } : c
+      ),
+    }));
   };
 
   const handleStop = () => {
@@ -310,7 +358,8 @@ function AppContent() {
     try {
       let savedProfile = {};
       try {
-        savedProfile = JSON.parse(localStorage.getItem("dharma-profile") || "{}");
+        const profileKey = user ? `dharma-profile-${user.uid}` : "dharma-profile";
+        savedProfile = JSON.parse(localStorage.getItem(profileKey) || "{}");
       } catch {
         savedProfile = {};
       }
@@ -382,7 +431,8 @@ function AppContent() {
     try {
       let savedProfile = {};
       try {
-        savedProfile = JSON.parse(localStorage.getItem("dharma-profile") || "{}");
+        const profileKey = user ? `dharma-profile-${user.uid}` : "dharma-profile";
+        savedProfile = JSON.parse(localStorage.getItem(profileKey) || "{}");
       } catch {
         savedProfile = {};
       }
@@ -448,8 +498,11 @@ function AppContent() {
   const handleNewChat = () => {
     if (messages.length > 0) {
       const newId = Date.now().toString();
-      setChats((prev) => [{ id: newId, title: "New Chat", messages: [] }, ...prev]);
-      setActiveChatId(newId);
+      setSession((prev) => ({
+        ...prev,
+        chats: [{ id: newId, title: "New Chat", messages: [] }, ...prev.chats],
+        activeChatId: newId,
+      }));
     }
     setError("");
     setPrefillText("");
@@ -457,25 +510,36 @@ function AppContent() {
   };
 
   const switchChat = (id) => {
-    setActiveChatId(id);
+    setSession((prev) => ({ ...prev, activeChatId: id }));
     setActivePanel("chat");
     setIsMobileMenuOpen(false);
   };
 
   const deleteChat = (id) => {
-    const updated = chats.filter((c) => c.id !== id);
-    if (updated.length === 0) {
-      const newId = Date.now().toString();
-      setChats([{ id: newId, title: "New Chat", messages: [] }]);
-      setActiveChatId(newId);
-    } else {
-      setChats(updated);
-      if (activeChatId === id) setActiveChatId(updated[0].id);
-    }
+    setSession((prev) => {
+      const updated = prev.chats.filter((c) => c.id !== id);
+      let newActiveId = prev.activeChatId;
+      let newChats = updated;
+      if (updated.length === 0) {
+        const newId = Date.now().toString();
+        newChats = [{ id: newId, title: "New Chat", messages: [] }];
+        newActiveId = newId;
+      } else if (prev.activeChatId === id) {
+        newActiveId = updated[0].id;
+      }
+      return {
+        ...prev,
+        chats: newChats,
+        activeChatId: newActiveId,
+      };
+    });
   };
 
   const renameChat = (id, newTitle) =>
-    setChats((prev) => prev.map((c) => (c.id === id ? { ...c, title: newTitle } : c)));
+    setSession((prev) => ({
+      ...prev,
+      chats: prev.chats.map((c) => (c.id === id ? { ...c, title: newTitle } : c)),
+    }));
 
   const handleExport = () => {
     const lines = messages.map((m) => {

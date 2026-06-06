@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { GraduationCap, Award, BookOpen, Briefcase, Check } from "lucide-react";
 import Logo from "./Logo";
+import { useAuth } from "../contexts/AuthContext";
 
 const LEVELS = [
   { 
@@ -30,10 +31,12 @@ const LEVELS = [
 ];
 
 export default function LevelModal({ onSave }) {
+  const { user } = useAuth();
   const [selected, setSelected] = useState("beginner");
 
   const handleSave = () => {
-    const existing = localStorage.getItem("dharma-profile");
+    const profileKey = user ? `dharma-profile-${user.uid}` : "dharma-profile";
+    const existing = localStorage.getItem(profileKey);
     let profile = {};
     if (existing) {
       try {
@@ -43,7 +46,7 @@ export default function LevelModal({ onSave }) {
       }
     }
     profile.level = selected;
-    localStorage.setItem("dharma-profile", JSON.stringify(profile));
+    localStorage.setItem(profileKey, JSON.stringify(profile));
     onSave(selected);
   };
 

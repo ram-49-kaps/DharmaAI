@@ -35,7 +35,7 @@ export default function SignUp({ onSwitchToLogin }) {
       if (name.trim()) {
         await updateProfile(user, { displayName: name.trim() });
       }
-      localStorage.setItem("dharma-profile", JSON.stringify({
+      localStorage.setItem(`dharma-profile-${user.uid}`, JSON.stringify({
         level,
         institution: institution.trim(),
         name: name.trim(),
