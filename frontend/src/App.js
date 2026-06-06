@@ -532,7 +532,7 @@ function AppContent() {
             >
               <PanelLeft size={20} />
             </button>
-            <div className="tooltip-content tooltip-bottom-right" style={{ left: "0", transform: "none", top: "calc(100% + 8px)" }}>
+            <div className="tooltip-content tooltip-bottom-left">
               Open sidebar
             </div>
           </div>

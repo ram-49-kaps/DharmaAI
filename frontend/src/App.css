@@ -1959,6 +1959,18 @@ body {
   transform: translateY(0);
 }
 
+/* Modifier to display tooltip to the bottom-left */
+.tooltip-bottom-left {
+  bottom: auto;
+  top: calc(100% + 8px);
+  left: 0;
+  right: auto;
+  transform: translateY(-5px);
+}
+.tooltip-wrap:hover .tooltip-bottom-left {
+  transform: translateY(0);
+}
+
 .input-card {
   background: var(--surface);
   border: 1px solid var(--border);
