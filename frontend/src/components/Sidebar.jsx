@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, MessageSquare, Library, BrainCircuit, Pencil, Trash2, Download, X, Check, X as XIcon, Upload, LogOut, User, Sun, Moon } from "lucide-react";
+import { Plus, MessageSquare, Library, BrainCircuit, Pencil, Trash2, Download, X, Check, X as XIcon, Upload, LogOut, User, Sun, Moon, PanelLeftClose, Search, Sparkles } from "lucide-react";
 import Logo from "./Logo";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -19,11 +19,20 @@ export default function Sidebar({
   onOpenUploader,
   theme,
   onToggleTheme,
+  isCollapsed,
+  onToggleCollapse,
+  onLogout,
 }) {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [editingChatId, setEditingChatId] = React.useState(null);
   const [editTitle, setEditTitle] = React.useState("");
   const [deleteConfirmId, setDeleteConfirmId] = React.useState(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState("");
+
+  const filteredChats = chats.filter((c) =>
+    c.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const startRename = (e, chat) => {
     e.stopPropagation();
@@ -55,25 +64,42 @@ export default function Sidebar({
     <aside className={`sidebar ${isOpen ? "open" : ""}`}>
       {/* Logo */}
       <div className="sidebar-logo">
-        <div className="logo-icon"><Logo size={28} color="white" /></div>
-        <div className="logo-text">
-          <div className="logo-title">DharmaAI</div>
-          <div className="logo-sub">Indian Legal Assistant</div>
+        <div className="logo-icon"><Logo size={18} /></div>
+        <div className="tooltip-wrap" style={{ marginLeft: "auto" }}>
+          <button className="sidebar-collapse-btn" onClick={onToggleCollapse}>
+            <PanelLeftClose size={18} />
+          </button>
+          <div className="tooltip-content tooltip-bottom-right">
+            Close sidebar <span className="tooltip-key">⌘/</span>
+          </div>
         </div>
         <button className="mobile-close-btn" onClick={onClose}><X size={20} /></button>
       </div>
 
       {/* New Chat */}
-      <button className="new-chat-btn" onClick={onNewChat}>
-        <span><Plus size={18} /></span> New Chat
-      </button>
+      <div className="sidebar-actions">
+        <button className="new-chat-btn" onClick={onNewChat}>
+          <span><Plus size={18} /></span> New Chat
+        </button>
+      </div>
+
+      {/* Search */}
+      <div className="sidebar-search">
+        <Search size={14} className="sidebar-search-icon" />
+        <input 
+          type="text" 
+          placeholder="Search..." 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
 
       {/* Navigation */}
       <nav className="sidebar-nav">
         {[
           { id: "chat",      icon: <MessageSquare size={18} />, label: "Chat" },
-          { id: "sources",   icon: <Library size={18} />,       label: "Library & Sources" },
-          { id: "templates", icon: <BrainCircuit size={18} />,  label: "Brainstorming Templates" },
+          { id: "sources",   icon: <Library size={18} />,       label: "Library & Resources" },
+          { id: "templates", icon: <BrainCircuit size={18} />,  label: "Reasoning Templates" },
         ].map((item) => (
           <button
             key={item.id}
@@ -87,16 +113,18 @@ export default function Sidebar({
 
       {/* Chat history */}
       <div className="sidebar-section">
-        <p className="sidebar-section-title">Recent Chats</p>
-        {chats.length === 0 && <p className="sidebar-empty">No queries yet</p>}
-        {chats.map((chat) => {
+          <div className="sidebar-section-title">Recent Chats</div>
+          {filteredChats.length === 0 ? (
+            <div className="sidebar-empty">No chats found.</div>
+          ) : (
+            filteredChats.map((chat) => {
           const isEditing  = editingChatId === chat.id;
           const isDeleting = deleteConfirmId === chat.id;
           return (
             <div
               key={chat.id}
               className="history-item"
-              style={activeChatId === chat.id ? { background: "rgba(26,35,126,0.08)", color: "var(--primary)", fontWeight: 600 } : {}}
+              style={activeChatId === chat.id ? { background: "var(--primary-surface)", color: "var(--primary)", fontWeight: 600 } : {}}
               onClick={() => { if (!isEditing) onSwitchChat(chat.id); }}
             >
               {isEditing ? (
@@ -118,15 +146,23 @@ export default function Sidebar({
                   </>
                 ) : (
                   <>
-                    <button className="chat-action-btn" title="Rename" onClick={(e) => startRename(e, chat)}><Pencil size={14} /></button>
-                    <button className="chat-action-btn" title="Delete" onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(chat.id); setEditingChatId(null); }}><Trash2 size={14} /></button>
+                    <div className="tooltip-wrap">
+                      <button className="chat-action-btn" onClick={(e) => startRename(e, chat)}><Pencil size={14} /></button>
+                      <div className="tooltip-content" style={{ fontSize: "0.75rem", padding: "4px 8px" }}>Rename</div>
+                    </div>
+                    <div className="tooltip-wrap">
+                      <button className="chat-action-btn" onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(chat.id); setEditingChatId(null); }}><Trash2 size={14} /></button>
+                      <div className="tooltip-content" style={{ fontSize: "0.75rem", padding: "4px 8px" }}>Delete</div>
+                    </div>
                   </>
                 )}
               </div>
             </div>
           );
-        })}
+        }))}
       </div>
+
+
 
       {/* Footer */}
       <div className="sidebar-footer">
@@ -141,45 +177,60 @@ export default function Sidebar({
 
         {/* Admin PDF upload */}
         {isAdmin && onOpenUploader && (
-          <button className="export-btn" style={{ marginTop: "0.4rem" }} onClick={onOpenUploader}>
+          <button className="export-btn" style={{ marginTop: "0.2rem" }} onClick={onOpenUploader}>
             <Upload size={16} /> Upload PDF (Admin)
           </button>
         )}
 
         {/* User profile */}
         {user && (
-          <div style={styles.profileCard}>
+          <div style={profileStyles.card}>
             {user.photoURL ? (
-              <img src={user.photoURL} alt="" style={styles.avatar} referrerPolicy="no-referrer" />
+              <img src={user.photoURL} alt="" style={profileStyles.avatar} referrerPolicy="no-referrer" />
             ) : (
-              <div style={styles.avatarFallback}>
+              <div style={profileStyles.avatarFallback}>
                 <User size={14} color="#fff" />
               </div>
             )}
-            <div style={styles.profileInfo}>
-              <span style={styles.profileName}>{user.displayName || user.email?.split("@")[0] || "User"}</span>
-              <span style={styles.profileEmail}>{user.email}</span>
+            <div style={profileStyles.info}>
+              <span style={profileStyles.name}>{user.displayName || user.email?.split("@")[0] || "User"}</span>
+              <span style={profileStyles.email}>{user.email}</span>
             </div>
-            <button style={styles.logoutBtn} onClick={logout} title="Sign out">
-              <LogOut size={14} />
-            </button>
+            <div className="tooltip-wrap">
+              <button style={profileStyles.logoutBtn} onClick={() => setShowLogoutConfirm(true)}>
+                <LogOut size={14} />
+              </button>
+              <div className="tooltip-content tooltip-bottom-right" style={{ bottom: "auto", top: "calc(100% + 8px)", right: 0, fontSize: "0.75rem", padding: "4px 8px" }}>Sign out</div>
+            </div>
           </div>
         )}
 
-        <p className="disclaimer" style={{ marginTop: "0.25rem" }}>
-          Educational use only · Not legal advice<br />
-          Powered by IKS & Modern Jurisprudence
-        </p>
+
+
+        {/* Logout confirmation modal */}
+        {showLogoutConfirm && (
+          <div className="logout-overlay" onClick={() => setShowLogoutConfirm(false)}>
+            <div className="logout-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="logout-modal-icon"><LogOut size={24} color="#B45309" /></div>
+              <h3 className="logout-modal-title">Sign Out</h3>
+              <p className="logout-modal-text">Are you sure you want to sign out of DharmaAI?</p>
+              <div className="logout-modal-actions">
+                <button className="logout-cancel-btn" onClick={() => setShowLogoutConfirm(false)}>Cancel</button>
+                <button className="logout-confirm-btn" onClick={() => { setShowLogoutConfirm(false); onLogout(); }}>Sign Out</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </aside>
   );
 }
 
-const styles = {
-  profileCard: {
-    marginTop: "0.5rem",
+const profileStyles = {
+  card: {
+    marginTop: "0.25rem",
     padding: "0.6rem 0.75rem",
-    background: "var(--surface)",
+    background: "var(--surface-2)",
     borderRadius: "var(--radius-sm)",
     border: "1px solid var(--border)",
     display: "flex",
@@ -188,11 +239,11 @@ const styles = {
   },
   avatar: { width: 28, height: 28, borderRadius: "50%", objectFit: "cover", flexShrink: 0 },
   avatarFallback: {
-    width: 28, height: 28, borderRadius: "50%", background: "var(--primary)",
+    width: 28, height: 28, borderRadius: "50%", background: "var(--gradient-primary)",
     display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
   },
-  profileInfo: { flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" },
-  profileName: { fontSize: "0.82rem", fontWeight: 700, color: "var(--primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
-  profileEmail: { fontSize: "0.68rem", color: "var(--text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
+  info: { flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" },
+  name: { fontSize: "0.82rem", fontWeight: 700, color: "var(--primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
+  email: { fontSize: "0.68rem", color: "var(--text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
   logoutBtn: { background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: "2px", flexShrink: 0 },
 };

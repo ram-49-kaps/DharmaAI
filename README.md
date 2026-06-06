@@ -1,22 +1,21 @@
-# ⚖️ DharmaAI v2 — Indian Legal AI Platform
+# ⚖️ DharmaAI 3.0 — Indian Legal AI Platform (Dharma3.0)
 
 RAG-first legal AI chatbot for Indian jurisprudence with deep IKS (Indian Knowledge System) integration.
 
-**Primary LLM:** Gemini 2.0 Flash · **Embeddings:** Gemini text-embedding-004 · **Vector Store:** ChromaDB · **Auth:** Firebase
+**Primary LLM:** Gemini 2.0 Flash / Groq Llama 3.3 · **Embeddings:** Gemini text-embedding-004 / local embeddings · **Vector Store:** ChromaDB · **Auth:** Firebase
 
 ---
 
-## What's New in v2
+## What's New in v3.0
 
-- **RAG-first**: every query retrieves from ChromaDB before the LLM answers — no hallucination
-- **Gemini 2.0 Flash** replaces Groq as primary LLM; `max_tokens=4096` fixes cut-off responses
-- **Firebase Authentication** — Google SSO + Email/Password; per-user chat history
-- **Judge-Advocate agent** (LangGraph) verifies citations before returning answers
-- **50+ node Knowledge Graph** with embedding-based matching (fixes "Danda everywhere" bug)
-- **Router fixed** — defaults to `general_qa`, never auto-triggers IRAC for normal queries
-- **PDF ingestion endpoint** — admin can upload PDFs at runtime
-- **Structured seed corpus** — 13 IKS concepts, 10 modern law entries, 18 landmark cases
-- **Citation system** — every answer cites `[Source | Document | Section | Page]`
+- **Unified Blue Logo Branding**: The Dharma Chakra logo has been styled with a dynamic blue theme (`#1A237E` in light mode, `#3B82F6` in dark mode) and all background shapes/gradients have been removed for a clean, professional aesthetic.
+- **Page Initialization Skeleton Screen**: A premium shimmer skeleton loader replaces the basic loading spinner, displaying an outline of the sidebar and message bubbles during authentication initialization.
+- **First-Time Login Splash Transition**: Smooth login and logout transitions with the `SplashScreen` component ("Preparing your legal workspace..." or "Signing out..."), which is skipped on page reloads to go straight to the chat using the skeleton screen.
+- **Personalization (Expertise Level Modal)**: Automatically detects when a user (like Google SSO logins) does not have an expertise level set, prompting them to select one (`Beginner Student`, `Advanced Student`, `Academician`, or `Practitioner`) to customize the LLM's reasoning depth and vocabulary.
+- **Full Window Conversation History**: Bypasses the previous 10-message truncation. The entire chat history context window is now passed to the LLM.
+- **Regenerate Response Option**: Added a `RefreshCw` button under assistant messages allowing users to regenerate any response, which truncates the history and restarts generation from the user's prompt.
+- **Warm Follow-up Questions**: Dynamically generates 2 relevant, text-only follow-up questions after each AI response, concluded by a warm, friendly invitation to proceed.
+- **Premium Custom Tooltips**: Replaced default browser tooltips with custom-styled hover tooltips on all message actions (Copy, Helpful, Not helpful, Share, Regenerate) and sidebar actions (Rename, Delete, Sign Out, Open Sidebar).
 
 ---
 
@@ -88,13 +87,15 @@ REACT_APP_FIREBASE_APP_ID=...
 
 **Terminal 1 — Backend:**
 ```bash
-cd backend && venv\Scripts\activate
+cd backend
+source venv/bin/activate
 uvicorn app:app --reload --port 8000
 ```
 
 **Terminal 2 — Frontend:**
 ```bash
-cd frontend && npm start
+cd frontend
+npm start
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
@@ -143,7 +144,7 @@ API docs: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ```bash
 cd backend
-venv\Scripts\activate
+source venv/bin/activate
 pytest tests/ -v
 ```
 
@@ -177,11 +178,16 @@ User Query
   → only injects Danda context for criminal law queries
     ↓
 [Chain] Appropriate chain (general_qa / irac / idar / etc.)
-  → Gemini 2.0 Flash, max_tokens=4096
+  → Gemini 2.0 Flash (Groq fallback)
+  → injects expertise-level prompt leveling guidance
   → STRICT: answer only from retrieved sources
     ↓
 [Judge-Advocate] (LangGraph)
   → Advocate drafts → Judge critiques → revise ≤2x → finalize
+    ↓
+[Response Post-Processor]
+  → Generates 2 suggested follow-up questions
+  → Appends friendly invitation message
     ↓
 Response with citations + sources panel
 ```
@@ -202,27 +208,12 @@ When Law Dept provides PDFs, ingest via `/api/ingest` — no code changes needed
 
 ---
 
-## Bug Fixes from v1
-
-| Bug | Fix |
-|---|---|
-| Responses cut off mid-sentence | `max_tokens` raised from 1024 → 4096 |
-| Normal queries trigger IRAC | Router defaults to `general_qa`; IRAC only on explicit request |
-| No conversation memory | `ConversationBufferWindowMemory` last 10 turns |
-| Danda appears in unrelated topics | KG similarity threshold 0.4; Danda only injected for criminal law queries |
-| Superficial IKS connections | Deep `iks_modern_mappings.json` with genuine explanations |
-| Only 5 hardcoded cases | 18+ landmark cases in ChromaDB seed corpus |
-| Brief responses | Gemini 2.0 Flash with detailed prompt instructions |
-| No real citations | `[Source | Doc | Section | Page]` citation system throughout |
-
----
-
 ## Environment Variables Reference
 
 | Variable | Required | Description |
 |---|---|---|
 | `GEMINI_API_KEY` | Yes | Gemini 2.0 Flash + embeddings |
-| `GROQ_API_KEY` | No | Fallback LLM if no Gemini key |
+| `GROQ_API_KEY` | No | Primary LLM/Fallback LLM if no Gemini key |
 | `FIREBASE_PROJECT_ID` | Yes | Firebase project |
 | `FIREBASE_PRIVATE_KEY` | Yes | Service account private key |
 | `FIREBASE_CLIENT_EMAIL` | Yes | Service account email |

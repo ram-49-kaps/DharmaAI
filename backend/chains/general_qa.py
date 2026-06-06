@@ -18,6 +18,7 @@ from langchain_core.output_parsers import StrOutputParser
 from services.llm import invoke_with_fallback
 from services.rag_engine import get_rag_engine
 from services.knowledge_graph import get_knowledge_graph
+from chains.leveling import get_level_guidance
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +37,9 @@ SYSTEM_PROMPT = """You are DharmaAI — an expert educational legal assistant sp
 5. **COMPLETE & DETAILED ANSWERS**: Do not be brief. Provide comprehensive, multi-paragraph answers. When discussing cases or statutes, detail the facts, issues, and rationale thoroughly. Do not stop mid-sentence.
 6. **IKS SYNTHESIS**: Do not just append IKS quotes. Deeply synthesize how the ancient IKS concepts (like Dharma) conceptually form the foundation for the modern legal provisions discussed. Establish a strong, meaningful connection.
 7. **AVOID DANDA OVERUSE**: Do not overuse the term 'Danda'. Only use it when specifically discussing penal consequences or when it is heavily featured in the retrieved text.
+
+## USER LEVEL
+{level_guidance}
 
 ## KNOWLEDGE GRAPH CONTEXT (IKS Concepts)
 {kg_context}
@@ -56,11 +60,11 @@ PROMPT = ChatPromptTemplate.from_messages([
 
 
 def build_history_text(history: List[dict]) -> str:
-    """Format conversation history as structured messages (last 10 turns)."""
+    """Format conversation history as structured messages (full context window)."""
     if not history:
         return "No previous conversation."
     lines = []
-    for msg in history[-10:]:
+    for msg in history:
         role = "User" if msg.get("role") == "user" else "DharmaAI"
         content = msg.get("content", "")
         if len(content) > 2000:
@@ -69,7 +73,7 @@ def build_history_text(history: List[dict]) -> str:
     return "\n\n".join(lines)
 
 
-def run_general_chain(message: str, history: List[dict]) -> str:
+def run_general_chain(message: str, history: List[dict], level: str = None) -> str:
     """
     RAG-first general Q&A handler.
     Retrieves from all ChromaDB collections before answering.
@@ -90,6 +94,7 @@ def run_general_chain(message: str, history: List[dict]) -> str:
             "context": context,
             "kg_context": kg_context or "No IKS connections directly relevant to this query.",
             "history": history_text,
+            "level_guidance": get_level_guidance(level),
         }
         return invoke_with_fallback(
             lambda llm: PROMPT | llm | StrOutputParser(),

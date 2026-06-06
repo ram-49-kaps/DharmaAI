@@ -18,6 +18,7 @@ from langchain_core.output_parsers import StrOutputParser
 from services.llm import invoke_with_fallback
 from services.rag_engine import get_rag_engine
 from services.knowledge_graph import get_knowledge_graph
+from chains.leveling import get_level_guidance
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +56,9 @@ State the likely legal outcome with brief reasoning:
 - Note any caveats or alternative outcomes
 
 ---
+## USER LEVEL
+{level_guidance}
+
 ## KNOWLEDGE GRAPH CONTEXT (IKS connections)
 {kg_context}
 
@@ -69,7 +73,7 @@ PROMPT = ChatPromptTemplate.from_messages([
 ])
 
 
-def run_irac_chain(message: str) -> str:
+def run_irac_chain(message: str, level: str = None) -> str:
     """
     IRAC analysis using RAG-retrieved sources only.
     Cites only from retrieved context — no hallucination.
@@ -85,6 +89,7 @@ def run_irac_chain(message: str) -> str:
             "message": message,
             "context": context,
             "kg_context": kg_context or "No specific IKS connections relevant to this analysis.",
+            "level_guidance": get_level_guidance(level),
         }
         return invoke_with_fallback(
             lambda llm: PROMPT | llm | StrOutputParser(),

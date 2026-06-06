@@ -3,7 +3,7 @@ import { BookOpen, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 
 const TYPE_COLORS = {
   iks: { bg: "#fef3c7", border: "#f59e0b", text: "#92400e", label: "IKS" },
-  case: { bg: "#ede9fe", border: "#8b5cf6", text: "#5b21b6", label: "Case" },
+  case: { bg: "#ede9fe", border: "#C2410C", text: "#5b21b6", label: "Case" },
   statute: { bg: "#dbeafe", border: "#3b82f6", text: "#1e40af", label: "Statute" },
   principle: { bg: "#d1fae5", border: "#10b981", text: "#065f46", label: "Principle" },
   glossary: { bg: "#f3f4f6", border: "#6b7280", text: "#374151", label: "Glossary" },

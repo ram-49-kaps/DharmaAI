@@ -18,6 +18,7 @@ from langchain_core.output_parsers import StrOutputParser
 from services.llm import invoke_with_fallback
 from services.rag_engine import get_rag_engine
 from services.knowledge_graph import get_knowledge_graph
+from chains.leveling import get_level_guidance
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +73,9 @@ State the likely legal outcome with full reasoning:
 - Cite specific sections/cases
 
 ---
+## USER LEVEL
+{level_guidance}
+
 ## KNOWLEDGE GRAPH CONTEXT
 {kg_context}
 
@@ -86,7 +90,7 @@ PROMPT = ChatPromptTemplate.from_messages([
 ])
 
 
-def run_idar_chain(message: str) -> str:
+def run_idar_chain(message: str, level: str = None) -> str:
     """
     Dharma-based IDAR analysis.
     Only injects Danda context when the query genuinely involves criminal law.
@@ -108,6 +112,7 @@ def run_idar_chain(message: str) -> str:
             "message": message,
             "context": context,
             "kg_context": kg_context or "No specific IKS graph connections found for this query.",
+            "level_guidance": get_level_guidance(level),
         }
         return invoke_with_fallback(
             lambda llm: PROMPT | llm | StrOutputParser(),

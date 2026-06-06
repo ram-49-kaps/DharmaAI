@@ -49,6 +49,39 @@ def init_db():
             content     TEXT NOT NULL,
             created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
+
+        CREATE TABLE IF NOT EXISTS user_profiles (
+            uid              TEXT PRIMARY KEY,
+            email            TEXT NOT NULL DEFAULT '',
+            name             TEXT NOT NULL DEFAULT '',
+            picture          TEXT NOT NULL DEFAULT '',
+            level            TEXT NOT NULL DEFAULT 'beginner',
+            institution      TEXT NOT NULL DEFAULT '',
+            year_of_study    TEXT NOT NULL DEFAULT '',
+            areas_of_interest TEXT NOT NULL DEFAULT '[]',
+            created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS feedback (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id         TEXT NOT NULL DEFAULT 'anonymous',
+            message_id      TEXT,
+            session_id      TEXT,
+            feedback_type   TEXT NOT NULL,
+            comment         TEXT NOT NULL DEFAULT '',
+            query           TEXT NOT NULL DEFAULT '',
+            response        TEXT NOT NULL DEFAULT '',
+            created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS shared_chats (
+            share_id    TEXT PRIMARY KEY,
+            user_id     TEXT NOT NULL DEFAULT 'anonymous',
+            title       TEXT NOT NULL DEFAULT '',
+            messages    TEXT NOT NULL DEFAULT '[]',
+            created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
     """)
 
     # Migrate: add user_id column if it was added after initial creation

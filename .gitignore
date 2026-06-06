@@ -22,3 +22,7 @@ chroma_db/
 # IDE
 .idea/
 .vscode/
+
+# Custom Database & Tooling
+chroma_db_v2/
+.kiro/

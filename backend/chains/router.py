@@ -12,7 +12,7 @@ Fixes:
 import logging
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from services.llm import invoke_with_fallback
+from services.llm import invoke_fast
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +61,14 @@ INTENT DEFINITIONS AND EXAMPLES:
    - "Use the Dharma framework to analyse this dispute"
    - "IKS-based analysis of this situation"
 
-6. "comparative" — User asks to compare two legal concepts, cases, or systems.
+6. "filac_analysis" — User EXPLICITLY requests FILAC analysis. ONLY classify as this if the user says one of these exact phrases:
+   - "apply FILAC", "FILAC analysis", "FILAC method", "use FILAC", "FILAC breakdown", "Facts Issues Law Analysis Conclusion"
+   Examples:
+   - "Apply FILAC to this property dispute"
+   - "Do a FILAC analysis of this criminal case"
+   - "Use the FILAC method for this scenario"
+
+7. "comparative" — User asks to compare two legal concepts, cases, or systems.
    Examples:
    - "Compare IRAC and IDAR"
    - "How does BNS 2023 differ from IPC 1860?"
@@ -69,13 +76,13 @@ INTENT DEFINITIONS AND EXAMPLES:
    - "What is the difference between Dharma and modern law?"
    - "Compare Arthashastra and the Indian Contract Act"
 
-7. "conversational" — User is making small talk, greeting, or asking general non-legal questions.
+8. "conversational" — User is making small talk, greeting, or asking general non-legal questions.
    Examples:
    - "hello", "hi", "how are you"
    - "who are you?", "what can you do?"
    - "good morning"
 
-8. "follow_up" — User continues a previous conversation or asks for more detail.
+9. "follow_up" — User continues a previous conversation or asks for more detail.
    Examples:
    - "Continue"
    - "Tell me more"
@@ -85,7 +92,7 @@ INTENT DEFINITIONS AND EXAMPLES:
    - "Give more details"
    - "What else?"
 
-9. "general_qa" — EVERYTHING ELSE. This is the DEFAULT for any legal question that doesn't fit above.
+10. "general_qa" — EVERYTHING ELSE. This is the DEFAULT for any legal question that doesn't fit above.
    Examples:
    - "How does the criminal justice system work in India?"
    - "What are my rights if arrested?"
@@ -99,6 +106,7 @@ CRITICAL RULES:
 - Default to "general_qa" for any normal legal question, even if it asks to "explain" something or solve a problem.
 - NEVER classify a question as "irac_analysis" unless the user EXPLICITLY types the word "IRAC".
 - NEVER classify as "idar_analysis" unless the user EXPLICITLY types the word "IDAR" or "Dharma framework".
+- NEVER classify as "filac_analysis" unless the user EXPLICITLY types the word "FILAC".
 - Questions about Danda, Dharma, or IKS are just "definition" or "general_qa", NOT "idar_analysis".
 - Reply with ONLY the intent label. No punctuation. No explanation. No quotes."""),
     ("human", "{message}")
@@ -115,6 +123,35 @@ def detect_intent(message: str) -> str:
     if msg_clean in greetings or (len(msg_clean) < 10 and any(g in msg_clean for g in ["hello", "hi "])):
         return "conversational"
 
+    if "filac" in msg_clean:
+        return "filac_analysis"
+    if "irac" in msg_clean:
+        return "irac_analysis"
+    if (
+        "idar" in msg_clean
+        or "dharma framework" in msg_clean
+        or "iks-based analysis" in msg_clean
+        or "iks analysis" in msg_clean
+        or "dharmic framework" in msg_clean
+        or "dharma-based analysis" in msg_clean
+    ):
+        return "idar_analysis"
+
+    definition_markers = (
+        "what is ", "what are ", "define ", "what does ",
+        "meaning of ", "explain the concept of ",
+    )
+    if msg_clean.startswith(definition_markers) and not any(
+        marker in msg_clean for marker in ["case", "judgment", "article", "section", " code"]
+    ):
+        return "definition"
+
+    if any(marker in msg_clean for marker in [" case", " judgment", "decided in", "happened in"]):
+        return "case_lookup"
+
+    if any(marker in msg_clean for marker in ["section ", "article ", "bns", "ipc", "crpc", "bnss"]):
+        return "statute_lookup"
+
     try:
         result = invoke_fast(
             lambda llm: INTENT_PROMPT | llm | StrOutputParser(),
@@ -123,7 +160,7 @@ def detect_intent(message: str) -> str:
 
         valid = {
             "definition", "case_lookup", "statute_lookup",
-            "irac_analysis", "idar_analysis", "comparative",
+            "irac_analysis", "idar_analysis", "filac_analysis", "comparative",
             "follow_up", "conversational", "general_qa",
         }
 
@@ -131,6 +168,7 @@ def detect_intent(message: str) -> str:
         legacy_map = {
             "legal_reasoning": "irac_analysis",
             "idar": "idar_analysis",
+            "filac": "filac_analysis",
             "case_law": "case_lookup",
             "statute": "statute_lookup",
             "general": "general_qa",

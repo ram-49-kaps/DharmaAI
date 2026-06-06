@@ -4,15 +4,17 @@ RAG-first legal AI for Indian jurisprudence with IKS integration.
 """
 
 import logging
+import json
 import os
 import sys
+import tempfile
 import uuid
 
 # Ensure backend root is on path
 sys.path.insert(0, os.path.dirname(__file__))
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, Query, Depends
+from fastapi import FastAPI, HTTPException, Query, Depends, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
@@ -32,6 +34,11 @@ from models.schemas import (
     ChatSession, ChatSessionList,
     IngestResponse,
     UserProfile,
+    ProfileUpdate,
+    FeedbackRequest,
+    FeedbackResponse,
+    ShareChatRequest,
+    ShareChatResponse,
 )
 from db.database import init_db, get_connection
 from db.seed import seed, seed_chromadb
@@ -43,10 +50,12 @@ from chains.definition import run_definition_chain
 from chains.caselaw import run_caselaw_chain
 from chains.statute import run_statute_chain
 from chains.irac import run_irac_chain
+from chains.filac import run_filac_chain
 from chains.idar import run_idar_chain
 from chains.general_qa import run_general_chain
 from chains.follow_up import run_follow_up_chain, is_follow_up
 from chains.conversational import run_conversational_chain
+from services.pdf_ingestion import PDFIngestor
 
 
 # ── Startup ───────────────────────────────────────────────────────────────────
@@ -131,37 +140,152 @@ def _sources_to_citations(sources: list) -> list:
     return citations
 
 
+def _user_profile_from_row(row, user: dict) -> UserProfile:
+    if not row:
+        return UserProfile(
+            uid=user.get("uid", ""),
+            email=user.get("email", ""),
+            name=user.get("name", ""),
+            picture=user.get("picture", ""),
+        )
+    try:
+        interests = json.loads(row["areas_of_interest"] or "[]")
+    except json.JSONDecodeError:
+        interests = []
+    return UserProfile(
+        uid=row["uid"],
+        email=row["email"],
+        name=row["name"],
+        picture=row["picture"],
+        level=row["level"],
+        institution=row["institution"],
+        year_of_study=row["year_of_study"],
+        areas_of_interest=interests,
+    )
+
+
+def _get_saved_profile(uid: str, user: dict) -> UserProfile:
+    conn = get_connection()
+    row = conn.execute("SELECT * FROM user_profiles WHERE uid = ?", (uid,)).fetchone()
+    conn.close()
+    return _user_profile_from_row(row, user)
+
+
+async def _extract_attachment_context(files: list[UploadFile]) -> str:
+    """Extract readable context from chat attachments without storing them permanently."""
+    if not files:
+        return ""
+
+    sections = []
+    for file in files[:5]:
+        content = await file.read()
+        if len(content) > 20 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail=f"{file.filename} is too large (max 20 MB)")
+
+        content_type = (file.content_type or "").lower()
+        filename = file.filename or "attachment"
+        lower_name = filename.lower()
+
+        if lower_name.endswith(".pdf") or content_type == "application/pdf":
+            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+                tmp.write(content)
+                tmp_path = tmp.name
+            try:
+                pages = PDFIngestor().extract_with_metadata(tmp_path)
+                text = "\n\n".join(f"[Page {page}] {page_text}" for page_text, page in pages)
+                if len(text) > 12000:
+                    text = text[:12000] + "\n...[PDF text truncated]"
+                sections.append(f"Attachment: {filename} (PDF)\n{text or '[No text extracted]'}")
+            finally:
+                os.unlink(tmp_path)
+        elif content_type.startswith("image/") or lower_name.endswith((".png", ".jpg", ".jpeg", ".webp")):
+            sections.append(
+                f"Attachment: {filename} ({content_type or 'image'}, {len(content)} bytes). "
+                "Image bytes were received; OCR/vision extraction is not configured in this backend."
+            )
+        elif content_type.startswith("text/") or lower_name.endswith(".txt"):
+            text = content.decode("utf-8", errors="replace")
+            if len(text) > 12000:
+                text = text[:12000] + "\n...[text attachment truncated]"
+            sections.append(f"Attachment: {filename} (text)\n{text}")
+        else:
+            sections.append(
+                f"Attachment: {filename} ({content_type or 'unknown'}, {len(content)} bytes). "
+                "This file type was received but cannot yet be text-extracted."
+            )
+
+    return "\n\n".join(sections)
+
+
+async def _chat_request_from_request(request: Request) -> ChatRequest:
+    content_type = request.headers.get("content-type", "")
+    if content_type.startswith("multipart/form-data"):
+        form = await request.form()
+        message = str(form.get("message") or "")
+        history_raw = form.get("history") or "[]"
+        try:
+            history = json.loads(history_raw) if isinstance(history_raw, str) else []
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=400, detail="history must be valid JSON")
+
+        files = []
+        for key in ("files", "file", "attachments"):
+            files.extend([item for item in form.getlist(key) if hasattr(item, "filename") and hasattr(item, "read")])
+        attachment_context = await _extract_attachment_context(files)
+        if attachment_context:
+            message = (
+                f"{message}\n\n"
+                "Use the following uploaded attachment context where relevant. "
+                "If an attachment could not be extracted, say so plainly.\n\n"
+                f"{attachment_context}"
+            ).strip()
+
+        return ChatRequest(
+            message=message,
+            history=history,
+            session_id=form.get("session_id") or None,
+            level=form.get("level") or None,
+        )
+
+    body = await request.json()
+    return ChatRequest(**body)
+
+
 # ── Chat ──────────────────────────────────────────────────────────────────────
 
 @app.post("/api/chat", response_model=ChatResponse)
-async def chat(req: ChatRequest, user: dict = Depends(get_current_user)):
+async def chat(request: Request, user: dict = Depends(get_current_user)):
     """RAG-first chat endpoint. All queries retrieve before generating."""
+    req = await _chat_request_from_request(request)
     try:
         history_dicts = [m.model_dump() for m in req.history]
+        level = req.level or _get_saved_profile(user.get("uid", "anonymous"), user).level
 
         # Check for follow-up first (overrides router for continuation queries)
         if is_follow_up(req.message) and history_dicts:
             intent = "follow_up"
-            answer = run_follow_up_chain(req.message, history_dicts)
+            answer = run_follow_up_chain(req.message, history_dicts, level=level)
         else:
             intent = detect_intent(req.message)
 
             if intent == "definition":
-                answer = run_definition_chain(req.message)
+                answer = run_definition_chain(req.message, level=level)
             elif intent == "case_lookup":
-                answer = run_caselaw_chain(req.message)
+                answer = run_caselaw_chain(req.message, level=level)
             elif intent == "statute_lookup":
-                answer = run_statute_chain(req.message)
+                answer = run_statute_chain(req.message, level=level)
             elif intent == "irac_analysis":
-                answer = run_irac_chain(req.message)
+                answer = run_irac_chain(req.message, level=level)
+            elif intent == "filac_analysis":
+                answer = run_filac_chain(req.message, level=level)
             elif intent == "idar_analysis":
-                answer = run_idar_chain(req.message)
+                answer = run_idar_chain(req.message, level=level)
             elif intent == "comparative":
-                answer = run_general_chain(req.message, history_dicts)
+                answer = run_general_chain(req.message, history_dicts, level=level)
             elif intent == "conversational":
                 answer = run_conversational_chain(req.message)
             else:
-                answer = run_general_chain(req.message, history_dicts)
+                answer = run_general_chain(req.message, history_dicts, level=level)
 
         # Retrieve sources for the response panel
         sources = []
@@ -187,6 +311,13 @@ async def chat(req: ChatRequest, user: dict = Depends(get_current_user)):
                 ))
 
             citations = _sources_to_citations(sources)
+
+        # Generate suggested follow-up questions
+        if intent != "conversational" and answer:
+            from chains.follow_up import generate_suggested_questions
+            suggested = generate_suggested_questions(req.message, answer)
+            if suggested:
+                answer = f"{answer}\n\n---\n**Suggested Follow-up Questions:**\n{suggested}"
 
         uid = user.get("uid", "anonymous")
         if req.session_id:
@@ -235,6 +366,98 @@ async def get_me(user: dict = Depends(get_current_user)):
         name=user.get("name", ""),
         picture=user.get("picture", ""),
     )
+
+
+@app.get("/api/profile", response_model=UserProfile)
+async def get_profile(user: dict = Depends(get_current_user)):
+    """Return the persisted profile for the current user."""
+    uid = user.get("uid", "anonymous")
+    return _get_saved_profile(uid, user)
+
+
+@app.put("/api/profile", response_model=UserProfile)
+async def update_profile(payload: ProfileUpdate, user: dict = Depends(get_current_user)):
+    """Create or update the current user's profile."""
+    uid = user.get("uid", "anonymous")
+    existing = _get_saved_profile(uid, user)
+
+    updated = {
+        "email": user.get("email", existing.email),
+        "name": payload.name if payload.name is not None else existing.name,
+        "picture": user.get("picture", existing.picture),
+        "level": payload.level if payload.level is not None else existing.level,
+        "institution": payload.institution if payload.institution is not None else existing.institution,
+        "year_of_study": payload.year_of_study if payload.year_of_study is not None else existing.year_of_study,
+        "areas_of_interest": payload.areas_of_interest
+        if payload.areas_of_interest is not None
+        else existing.areas_of_interest,
+    }
+
+    allowed_levels = {"beginner", "intermediate", "advanced", "practitioner"}
+    if updated["level"] not in allowed_levels:
+        raise HTTPException(status_code=400, detail=f"level must be one of {sorted(allowed_levels)}")
+
+    conn = get_connection()
+    conn.execute(
+        """
+        INSERT INTO user_profiles
+            (uid, email, name, picture, level, institution, year_of_study, areas_of_interest, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(uid) DO UPDATE SET
+            email = excluded.email,
+            name = excluded.name,
+            picture = excluded.picture,
+            level = excluded.level,
+            institution = excluded.institution,
+            year_of_study = excluded.year_of_study,
+            areas_of_interest = excluded.areas_of_interest,
+            updated_at = CURRENT_TIMESTAMP
+        """,
+        (
+            uid,
+            updated["email"],
+            updated["name"],
+            updated["picture"],
+            updated["level"],
+            updated["institution"],
+            updated["year_of_study"],
+            json.dumps(updated["areas_of_interest"]),
+        ),
+    )
+    conn.commit()
+    conn.close()
+    return _get_saved_profile(uid, user)
+
+
+@app.post("/api/feedback", response_model=FeedbackResponse)
+async def create_feedback(payload: FeedbackRequest, user: dict = Depends(get_current_user)):
+    """Store user feedback on answers or product issues."""
+    allowed_types = {"thumbs_up", "thumbs_down", "bug_report", "feature_request"}
+    if payload.feedback_type not in allowed_types:
+        raise HTTPException(status_code=400, detail=f"feedback_type must be one of {sorted(allowed_types)}")
+
+    uid = user.get("uid", "anonymous")
+    conn = get_connection()
+    cur = conn.execute(
+        """
+        INSERT INTO feedback
+            (user_id, message_id, session_id, feedback_type, comment, query, response)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            uid,
+            payload.message_id,
+            payload.session_id,
+            payload.feedback_type,
+            payload.comment,
+            payload.query,
+            payload.response,
+        ),
+    )
+    conn.commit()
+    feedback_id = str(cur.lastrowid)
+    conn.close()
+    return FeedbackResponse(status="success", feedback_id=feedback_id)
 
 
 # ── Chat History ──────────────────────────────────────────────────────────────
@@ -351,6 +574,7 @@ async def search(q: str = Query(..., min_length=1), user: dict = Depends(get_cur
 async def get_templates():
     return TemplatesResponse(templates=[
         Template(name="IRAC", structure=["Issue", "Rule", "Application", "Conclusion"]),
+        Template(name="FILAC", structure=["Facts", "Issues", "Law", "Analysis", "Conclusion"]),
         Template(name="CRAC", structure=["Conclusion", "Rule", "Application", "Conclusion"]),
         Template(name="CREAC", structure=["Conclusion", "Rule", "Explanation", "Application", "Conclusion"]),
         Template(name="IDAR", structure=["Issue", "Dharma (applicable rule)", "Application of Danda", "Resolution"]),
@@ -377,6 +601,56 @@ async def knowledge_graph_node(node_id: str, user: dict = Depends(get_current_us
         "relationships": kg.get_relationships(node_id),
         "related": [{"id": n.id, "label": n.label, "category": n.category}
                     for n in kg.get_related(node_id, max_depth=2)],
+    }
+
+
+# ── Share Chat ────────────────────────────────────────────────────────────────
+
+@app.post("/api/share", response_model=ShareChatResponse)
+async def share_chat(payload: ShareChatRequest, request: Request, user: dict = Depends(get_current_user)):
+    """Create a shareable link for a chat conversation."""
+    uid = user.get("uid", "anonymous")
+    share_id = uuid.uuid4().hex[:12]
+
+    conn = get_connection()
+    conn.execute(
+        "INSERT INTO shared_chats (share_id, user_id, title, messages) VALUES (?, ?, ?, ?)",
+        (share_id, uid, payload.title or "Shared Chat", json.dumps(payload.messages)),
+    )
+    conn.commit()
+    conn.close()
+
+    # Build the share URL from the request origin
+    origin = request.headers.get("origin") or request.headers.get("referer", "").rstrip("/")
+    if not origin:
+        origin = "http://localhost:3000"
+    share_url = f"{origin}?share={share_id}"
+
+    return ShareChatResponse(share_id=share_id, share_url=share_url)
+
+
+@app.get("/api/share/{share_id}")
+async def get_shared_chat(share_id: str):
+    """Public endpoint — no auth required. Returns shared chat data."""
+    conn = get_connection()
+    row = conn.execute(
+        "SELECT share_id, title, messages, created_at FROM shared_chats WHERE share_id = ?",
+        (share_id,)
+    ).fetchone()
+    conn.close()
+    if not row:
+        raise HTTPException(status_code=404, detail="Shared chat not found")
+
+    try:
+        messages = json.loads(row["messages"])
+    except json.JSONDecodeError:
+        messages = []
+
+    return {
+        "share_id": row["share_id"],
+        "title": row["title"],
+        "messages": messages,
+        "created_at": row["created_at"],
     }
 
 

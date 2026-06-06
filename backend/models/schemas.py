@@ -11,6 +11,7 @@ class ChatRequest(BaseModel):
     message: str
     history: List[Message] = []
     session_id: Optional[str] = None
+    level: Optional[str] = None  # "beginner" | "intermediate" | "advanced" | "practitioner"
 
 class Citation(BaseModel):
     """Structured citation with full source information."""
@@ -85,3 +86,41 @@ class UserProfile(BaseModel):
     email: str
     name: str = ""
     picture: str = ""
+    level: str = "beginner"
+    institution: str = ""
+    year_of_study: str = ""
+    areas_of_interest: List[str] = []
+
+# ── Profile ───────────────────────────────────────────────────────────────────
+
+class ProfileUpdate(BaseModel):
+    name: Optional[str] = None
+    level: Optional[str] = None          # "beginner" | "intermediate" | "advanced" | "practitioner"
+    institution: Optional[str] = None
+    year_of_study: Optional[str] = None
+    areas_of_interest: Optional[List[str]] = None
+
+# ── Feedback ──────────────────────────────────────────────────────────────────
+
+class FeedbackRequest(BaseModel):
+    message_id: Optional[str] = None      # ID of the message being rated
+    session_id: Optional[str] = None
+    feedback_type: str                    # "thumbs_up" | "thumbs_down" | "bug_report" | "feature_request"
+    comment: str = ""
+    query: str = ""                       # The original query (for context)
+    response: str = ""                    # The AI response (for context)
+
+class FeedbackResponse(BaseModel):
+    status: str
+    feedback_id: str
+
+# ── Share ─────────────────────────────────────────────────────────
+
+class ShareChatRequest(BaseModel):
+    title: str = ""
+    messages: list = []
+
+class ShareChatResponse(BaseModel):
+    share_id: str
+    share_url: str
+

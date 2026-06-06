@@ -1,18 +1,18 @@
 import React, { useState, useRef } from "react";
-import { Square } from "lucide-react";
+import { Square, Paperclip, X, FileText, Image, Send } from "lucide-react";
 
 const QUICK_PROMPTS = [
   "What is Dharma in Indian law?",
   "Explain Kesavananda Bharati case",
   "What does Article 21 say?",
-  "Apply IRAC: A minor signed a contract",
-  "What is mns rca?",
 ];
 
 export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, messages = [], onCompactContext }) {
   const [text, setText] = useState("");
   const [showContext, setShowContext] = useState(false);
+  const [attachments, setAttachments] = useState([]);
   const textareaRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   // Handle prefill from templates
   React.useEffect(() => {
@@ -29,9 +29,10 @@ export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, 
       return;
     }
     const trimmed = text.trim();
-    if (!trimmed) return;
-    onSend(trimmed);
+    if (!trimmed && attachments.length === 0) return;
+    onSend(trimmed, attachments);
     setText("");
+    setAttachments([]);
     if (textareaRef.current) textareaRef.current.style.height = "auto";
   };
 
@@ -48,6 +49,36 @@ export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, 
     if (ta) { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; }
   };
 
+  // ── Attachment handling ─────────────────────────────────────────
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    const newAttachments = files.map(file => ({
+      file,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      preview: file.type.startsWith("image/") ? URL.createObjectURL(file) : null,
+    }));
+    setAttachments(prev => [...prev, ...newAttachments].slice(0, 5)); // Max 5 files
+    e.target.value = ""; // Reset input
+  };
+
+  const removeAttachment = (index) => {
+    setAttachments(prev => {
+      const updated = [...prev];
+      if (updated[index].preview) URL.revokeObjectURL(updated[index].preview);
+      updated.splice(index, 1);
+      return updated;
+    });
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / 1048576).toFixed(1) + " MB";
+  };
+
   const inputTokens = Math.ceil(text.trim().length / 4);
   const historyString = messages.map(m => m.content).join(" ");
   const historyTokens = Math.ceil(historyString.length / 4);
@@ -59,32 +90,75 @@ export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, 
   return (
     <div className="input-area">
       {/* Quick prompts */}
-      <div className="quick-prompts">
-        {QUICK_PROMPTS.map((p, i) => (
-          <button key={i} className="quick-btn" onClick={() => { setText(p); textareaRef.current?.focus(); }}>
-            {p}
-          </button>
-        ))}
-      </div>
+      {messages.length === 0 && (
+        <div className="quick-prompts">
+          {QUICK_PROMPTS.map((p, i) => (
+            <button key={i} className="quick-btn" onClick={() => { setText(p); textareaRef.current?.focus(); }}>
+              {p}
+            </button>
+          ))}
+        </div>
+      )}
 
-      <div className="input-row">
+      {/* Attachment previews */}
+      {attachments.length > 0 && (
+        <div className="attachment-previews">
+          {attachments.map((att, i) => (
+            <div key={i} className="attachment-chip">
+              {att.preview ? (
+                <img src={att.preview} alt={att.name} className="attachment-thumb" />
+              ) : (
+                <FileText size={16} className="attachment-file-icon" />
+              )}
+              <div className="attachment-info">
+                <span className="attachment-name">{att.name}</span>
+                <span className="attachment-size">{formatFileSize(att.size)}</span>
+              </div>
+              <button className="attachment-remove" onClick={() => removeAttachment(i)}>
+                <X size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="input-card">
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.webp"
+          style={{ display: "none" }}
+          onChange={handleFileSelect}
+        />
+        
         <textarea
           ref={textareaRef}
           className="input-textarea"
           rows={1}
-          placeholder="Ask a legal question… (Shift+Enter for new line)"
+          placeholder="Ask anything DharmaAI..."
           value={text}
           onChange={handleInput}
           onKeyDown={handleKeyDown}
         />
-        <button 
-          className={`send-btn ${loading ? "stop-mode" : ""}`} 
-          onClick={handleSend} 
-          disabled={!text.trim() && !loading}
-          title={loading ? "Stop generating" : "Send message"}
-        >
-          {loading ? <Square size={16} fill="currentColor" /> : "➤"}
-        </button>
+        
+        <div className="input-actions-row">
+          <button className="input-action-btn" onClick={() => fileInputRef.current?.click()}>
+            <Paperclip size={14} /> Attach
+          </button>
+          <button className="input-action-btn" onClick={() => fileInputRef.current?.click()}>
+            <Image size={14} /> Upload Media
+          </button>
+          
+          <button 
+            className={`send-btn ${loading ? "stop-mode" : ""}`} 
+            onClick={handleSend} 
+            disabled={!text.trim() && !loading && attachments.length === 0}
+          >
+            {loading ? <Square size={14} fill="currentColor" /> : <Send size={16} />}
+          </button>
+        </div>
       </div>
 
       <div className="context-wrapper">

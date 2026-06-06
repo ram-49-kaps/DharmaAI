@@ -6,7 +6,6 @@ Uses trafilatura for high-quality main text extraction.
 import hashlib
 import logging
 from typing import List, Tuple
-import trafilatura
 
 from services.rag_engine import get_rag_engine
 
@@ -21,6 +20,8 @@ class URLIngestor:
         """
         Download and extract the main content from the URL.
         """
+        import trafilatura
+
         downloaded = trafilatura.fetch_url(url)
         if not downloaded:
             raise ValueError(f"Failed to fetch content from URL: {url}")
