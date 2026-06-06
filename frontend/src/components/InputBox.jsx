@@ -11,6 +11,8 @@ export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, 
   const [text, setText] = useState("");
   const [showContext, setShowContext] = useState(false);
   const [attachments, setAttachments] = useState([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragCounter = useRef(0);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -22,6 +24,64 @@ export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, 
       textareaRef.current?.focus();
     }
   }, [prefillText, onPrefillUsed]);
+
+  // Window drag and drop listeners
+  React.useEffect(() => {
+    const handleWindowDragEnter = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dragCounter.current++;
+      if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+        setIsDragging(true);
+      }
+    };
+
+    const handleWindowDragLeave = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dragCounter.current--;
+      if (dragCounter.current === 0) {
+        setIsDragging(false);
+      }
+    };
+
+    const handleWindowDragOver = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    const handleWindowDrop = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+      dragCounter.current = 0;
+
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        const files = Array.from(e.dataTransfer.files);
+        const newAttachments = files.map(file => ({
+          file,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          preview: file.type.startsWith("image/") ? URL.createObjectURL(file) : null,
+        }));
+        setAttachments(prev => [...prev, ...newAttachments].slice(0, 5));
+        e.dataTransfer.clearData();
+      }
+    };
+
+    window.addEventListener("dragenter", handleWindowDragEnter);
+    window.addEventListener("dragleave", handleWindowDragLeave);
+    window.addEventListener("dragover", handleWindowDragOver);
+    window.addEventListener("drop", handleWindowDrop);
+
+    return () => {
+      window.removeEventListener("dragenter", handleWindowDragEnter);
+      window.removeEventListener("dragleave", handleWindowDragLeave);
+      window.removeEventListener("dragover", handleWindowDragOver);
+      window.removeEventListener("drop", handleWindowDrop);
+    };
+  }, []);
 
   const handleSend = () => {
     if (loading) {
@@ -89,6 +149,17 @@ export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, 
 
   return (
     <div className="input-area">
+      {isDragging && (
+        <div className="drag-drop-overlay">
+          <div className="drag-drop-content">
+            <div className="drag-drop-icon-wrap">
+              <Paperclip size={40} className="drag-drop-icon" />
+            </div>
+            <h3>Drop your files here</h3>
+            <p>Attach legal documents, screenshots, or images to your query (Max 5 files)</p>
+          </div>
+        </div>
+      )}
       {/* Quick prompts */}
       {messages.length === 0 && (
         <div className="quick-prompts">

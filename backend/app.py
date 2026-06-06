@@ -199,10 +199,41 @@ async def _extract_attachment_context(files: list[UploadFile]) -> str:
             finally:
                 os.unlink(tmp_path)
         elif content_type.startswith("image/") or lower_name.endswith((".png", ".jpg", ".jpeg", ".webp")):
-            sections.append(
-                f"Attachment: {filename} ({content_type or 'image'}, {len(content)} bytes). "
-                "Image bytes were received; OCR/vision extraction is not configured in this backend."
-            )
+            import io
+            from PIL import Image
+            import pytesseract
+
+            # Ensure pytesseract can find tesseract on macOS / common paths
+            tesseract_paths = [
+                '/opt/homebrew/bin/tesseract',
+                '/usr/local/bin/tesseract',
+                '/usr/bin/tesseract'
+            ]
+            for path in tesseract_paths:
+                if os.path.exists(path):
+                    pytesseract.pytesseract.tesseract_cmd = path
+                    break
+
+            try:
+                image = Image.open(io.BytesIO(content))
+                extracted_text = pytesseract.image_to_string(image)
+                extracted_text = (extracted_text or "").strip()
+                
+                if extracted_text:
+                    if len(extracted_text) > 12000:
+                        extracted_text = extracted_text[:12000] + "\n...[OCR text truncated]"
+                    sections.append(
+                        f"Attachment: {filename} (Image OCR Text):\n{extracted_text}"
+                    )
+                else:
+                    sections.append(
+                        f"Attachment: {filename} (Image):\n[No text could be extracted or identified in this image via OCR.]"
+                    )
+            except Exception as e:
+                logger.error(f"OCR failed for {filename}: {e}", exc_info=True)
+                sections.append(
+                    f"Attachment: {filename} (Image):\n[Error performing OCR extraction: {str(e)}]"
+                )
         elif content_type.startswith("text/") or lower_name.endswith(".txt"):
             text = content.decode("utf-8", errors="replace")
             if len(text) > 12000:
