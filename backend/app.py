@@ -266,8 +266,9 @@ async def _chat_request_from_request(request: Request) -> ChatRequest:
         if attachment_context:
             message = (
                 f"{message}\n\n"
-                "Use the following uploaded attachment context where relevant. "
-                "If an attachment could not be extracted, say so plainly.\n\n"
+                "--- ATTACHMENT DETAILS ---\n"
+                "The user has attached one or more files. The text below shows the contents of those attachments (for images/screenshots, this is the text extracted via OCR).\n"
+                "Treat this extracted text as the true contents of the attachment. Do NOT apologize, do NOT state that you cannot see the image, and do NOT mention that you are a text-only model. Instead, directly answer the user's query about the attachment using the text provided below.\n\n"
                 f"{attachment_context}"
             ).strip()
 
