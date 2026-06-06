@@ -40,6 +40,11 @@ const stripMarkdown = (md) => {
     .trim();
 };
 
+const cleanUserContent = (text) => {
+  if (!text) return "";
+  return text.split(/\n\nAttached:/)[0].trim();
+};
+
 export default function MessageBubble({ message, messageIndex, onEditMessage, onShareChat, sessionId, onRegenerate }) {
   const { role, content, intent, sources } = message;
   const isUser = role === "user";
@@ -56,8 +61,12 @@ export default function MessageBubble({ message, messageIndex, onEditMessage, on
 
   // Edit state (user messages only)
   const [isEditing, setIsEditing] = useState(false);
-  const [editText, setEditText] = useState(content);
+  const [editText, setEditText] = useState(isUser ? cleanUserContent(content) : content);
   const editRef = useRef(null);
+
+  useEffect(() => {
+    setEditText(isUser ? cleanUserContent(content) : content);
+  }, [content, isUser]);
 
   useEffect(() => {
     if (isEditing && editRef.current) {
@@ -147,7 +156,36 @@ export default function MessageBubble({ message, messageIndex, onEditMessage, on
                 </div>
               </div>
             ) : (
-              <p style={{ margin: 0 }}>{content}</p>
+              <>
+                <p style={{ margin: 0 }}>{cleanUserContent(content)}</p>
+                {message.attachments && message.attachments.length > 0 && (
+                  <div className="bubble-attachments">
+                    {message.attachments.map((att, idx) => {
+                      const isImage = att.type?.startsWith("image/") || att.preview?.startsWith("data:image/") || att.preview?.startsWith("blob:");
+                      if (isImage) {
+                        return (
+                          <div key={idx} className="bubble-attachment-preview-wrap">
+                            <img 
+                              src={att.preview} 
+                              alt={att.name} 
+                              className="bubble-attachment-img" 
+                              onClick={() => window.open(att.preview, "_blank")}
+                            />
+                            <span className="bubble-attachment-name" title={att.name}>{att.name}</span>
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <div key={idx} className="bubble-attachment-file" title={att.name}>
+                            <FileText size={14} style={{ marginRight: "4px" }} />
+                            <span className="bubble-attachment-name" style={{ margin: 0 }}>{att.name}</span>
+                          </div>
+                        );
+                      }
+                    })}
+                  </div>
+                )}
+              </>
             )
           ) : (
             <ReactMarkdown>{content}</ReactMarkdown>

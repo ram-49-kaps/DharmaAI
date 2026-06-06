@@ -330,11 +330,39 @@ function AppContent() {
       return;
     }
 
+    // Process attachments to generate persistent Base64 previews for images
+    const processedAttachments = [];
+    for (const att of attachments) {
+      let previewData = att.preview;
+      if (att.file && att.type?.startsWith("image/")) {
+        try {
+          previewData = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(att.file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => resolve(null);
+          });
+        } catch (e) {
+          console.error("Base64 conversion failed", e);
+        }
+      }
+      processedAttachments.push({
+        name: att.name,
+        size: att.size,
+        type: att.type,
+        preview: previewData || att.preview,
+      });
+    }
+
     const attachmentLabel = attachments.length
       ? `\n\nAttached: ${attachments.map((att) => att.name).join(", ")}`
       : "";
     const displayText = `${text}${attachmentLabel}`.trim() || "Attached files";
-    const userMsg = { role: "user", content: displayText };
+    const userMsg = { 
+      role: "user", 
+      content: displayText, 
+      attachments: processedAttachments 
+    };
     const updatedMessages = [...messages, userMsg];
 
     let newTitle = activeChat.title;
@@ -408,7 +436,19 @@ function AppContent() {
   const handleEditMessage = async (index, newContent) => {
     // Truncate to the edited message, replace its content, then re-send
     const truncated = messages.slice(0, index);
-    const editedUserMsg = { role: "user", content: newContent };
+    const originalMsg = messages[index];
+    const originalAttachments = originalMsg?.attachments || [];
+
+    const attachmentLabel = originalAttachments.length
+      ? `\n\nAttached: ${originalAttachments.map((att) => att.name).join(", ")}`
+      : "";
+    const fullContent = `${newContent}${attachmentLabel}`.trim();
+
+    const editedUserMsg = { 
+      role: "user", 
+      content: fullContent,
+      attachments: originalAttachments
+    };
     const updatedMessages = [...truncated, editedUserMsg];
 
     let newTitle = activeChat.title;
