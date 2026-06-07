@@ -53,6 +53,7 @@ Provide a detailed, complete response to the follow-up.
 - Cite every new claim: [IKS | source | section] or [Case | name | citation] or [Statute | act | section]
 - If the follow-up introduces a new sub-topic, address it specifically
 - Do NOT stop mid-sentence. Write a complete response.
+- Do NOT circle back to the concepts of 'Danda', 'Vyavahara', or ancient penal principles unless the user's query explicitly asks about them. Focus strictly on modern law and relevant IKS/Dharma connections.
 
 ## USER LEVEL
 {level_guidance}"""

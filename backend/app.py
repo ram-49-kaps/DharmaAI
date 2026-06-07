@@ -345,18 +345,37 @@ async def chat(request: Request, user: dict = Depends(get_current_user)):
             citations = _sources_to_citations(sources)
 
         # Generate suggested follow-up questions
+        suggested_questions = []
         if intent != "conversational" and answer:
             from chains.follow_up import generate_suggested_questions
             suggested = generate_suggested_questions(req.message, answer)
             if suggested:
-                answer = f"{answer}\n\n---\n**Suggested Follow-up Questions:**\n{suggested}"
+                for line in suggested.split("\n"):
+                    line_clean = line.strip()
+                    if line_clean.startswith(("- ", "* ")):
+                        q = line_clean[2:].strip()
+                        if q:
+                            suggested_questions.append(q)
+                    elif len(line_clean) > 3 and line_clean[0].isdigit() and line_clean[1:3] == ". ":
+                        q = line_clean[3:].strip()
+                        if q:
+                            suggested_questions.append(q)
+                
+                # Limit to exactly 2 questions as per specifications
+                suggested_questions = suggested_questions[:2]
 
         uid = user.get("uid", "anonymous")
         if req.session_id:
             _save_message(req.session_id, uid, "user", req.message)
             _save_message(req.session_id, uid, "assistant", answer)
 
-        return ChatResponse(intent=intent, answer=answer, sources=sources, citations=citations)
+        return ChatResponse(
+            intent=intent, 
+            answer=answer, 
+            sources=sources, 
+            citations=citations,
+            suggested_questions=suggested_questions
+        )
 
     except Exception as exc:
         logger.error(f"[Chat] Error: {exc}", exc_info=True)

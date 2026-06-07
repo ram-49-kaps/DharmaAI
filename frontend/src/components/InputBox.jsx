@@ -156,7 +156,7 @@ export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, 
               <Paperclip size={40} className="drag-drop-icon" />
             </div>
             <h3>Drop your files here</h3>
-            <p>Attach legal documents, screenshots, or images to your query (Max 5 files)</p>
+            <p>Attach legal documents, screenshots, or images to your query (Max 5 files, up to 20MB each)</p>
           </div>
         </div>
       )}
@@ -222,6 +222,10 @@ export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, 
             <Image size={14} /> Upload Media
           </button>
           
+          <span className="upload-limits-tip" style={{ fontSize: "0.68rem", color: "var(--text-muted)", marginLeft: "8px", alignSelf: "center" }}>
+            Max 5 files (up to 20MB/file)
+          </span>
+
           <button 
             className={`send-btn ${loading ? "stop-mode" : ""}`} 
             onClick={handleSend} 

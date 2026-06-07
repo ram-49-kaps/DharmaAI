@@ -40,7 +40,7 @@ function ThinkingAnimation() {
   );
 }
 
-export default function ChatWindow({ messages, loading, onFeatureClick, userName, onEditMessage, onShareChat, sessionId, onRegenerate }) {
+export default function ChatWindow({ messages, loading, onFeatureClick, userName, onEditMessage, onShareChat, sessionId, onRegenerate, onSendSuggested }) {
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -96,6 +96,7 @@ export default function ChatWindow({ messages, loading, onFeatureClick, userName
             onShareChat={onShareChat}
             sessionId={sessionId}
             onRegenerate={onRegenerate}
+            onSendSuggested={onSendSuggested}
           />
         ))
       )}

@@ -32,23 +32,40 @@ EMBED_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 EMBED_DIM = 384
 
 
+def _embed_texts_via_api(texts: List[str]) -> List[List[float]]:
+    hf_token = os.getenv("HUGGINGFACE_API_KEY")
+    if not hf_token:
+        return [[0.0] * EMBED_DIM for _ in texts]
+        
+    headers = {"Authorization": f"Bearer {hf_token}"}
+    try:
+        response = requests.post(
+            f"https://api-inference.huggingface.co/models/{EMBED_MODEL}",
+            headers=headers,
+            json={"inputs": texts},
+            timeout=8.0 # Enforce a strict 8-second timeout
+        )
+        if response.status_code != 200:
+            raise ValueError(f"HuggingFace API status {response.status_code}: {response.text}")
+        res = response.json()
+        if isinstance(res, dict) and "error" in res:
+            raise ValueError(f"HuggingFace API error: {res['error']}")
+        return res
+    except Exception as exc:
+        logger.error(f"[Embed] Direct HTTP request to Hugging Face failed: {exc}")
+        raise
+
+
 class CloudEmbeddingFunction(embedding_functions.EmbeddingFunction):
     """ChromaDB-compatible wrapper for Cloud HuggingFace embeddings."""
 
     def __init__(self):
-        hf_token = os.getenv("HUGGINGFACE_API_KEY")
-        if not hf_token:
-            logger.warning("[Embed] HUGGINGFACE_API_KEY not set — falling back to zero vectors")
-            self.lc_embeds = None
-        else:
-            self.lc_embeds = HuggingFaceInferenceAPIEmbeddings(
-                api_key=hf_token,
-                model_name=EMBED_MODEL
-            )
+        # Already handled via direct requests
+        pass
 
     def __call__(self, input: List[str]) -> List[List[float]]:
         """Batch-embed all texts to avoid 'Request Entity Too Large' errors."""
-        if not input or not self.lc_embeds:
+        if not input:
             return [[0.0] * EMBED_DIM for _ in input]
         
         batch_size = 32
@@ -56,12 +73,7 @@ class CloudEmbeddingFunction(embedding_functions.EmbeddingFunction):
         try:
             for i in range(0, len(input), batch_size):
                 batch = input[i : i + batch_size]
-                batch_embeds = self.lc_embeds.embed_documents(batch)
-                
-                # Check for API error response disguised as a dictionary
-                if isinstance(batch_embeds, dict) and "error" in batch_embeds:
-                    raise ValueError(f"HuggingFace API error: {batch_embeds['error']}")
-                
+                batch_embeds = _embed_texts_via_api(batch)
                 embeddings.extend(batch_embeds)
             return embeddings
         except Exception as exc:
@@ -72,17 +84,9 @@ class CloudEmbeddingFunction(embedding_functions.EmbeddingFunction):
 
 def _embed_query(query: str) -> List[float]:
     """Embed a single query string for retrieval."""
-    hf_token = os.getenv("HUGGINGFACE_API_KEY")
-    if not hf_token:
-        return [0.0] * EMBED_DIM
-
-    lc_embeds = HuggingFaceInferenceAPIEmbeddings(
-        api_key=hf_token,
-        model_name=EMBED_MODEL
-    )
-    
     try:
-        return lc_embeds.embed_query(query)
+        embeds = _embed_texts_via_api([query])
+        return embeds[0]
     except Exception as exc:
         logger.error(f"[Embed] Cloud query embedding failed: {exc}")
         return [0.0] * EMBED_DIM

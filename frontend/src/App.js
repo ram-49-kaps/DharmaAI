@@ -408,6 +408,7 @@ function AppContent() {
             intent: response.intent,
             sources: response.sources || [],
             citations: response.citations || [],
+            suggested_questions: response.suggested_questions || [],
           },
         ],
         newTitle
@@ -493,6 +494,7 @@ function AppContent() {
             intent: response.intent,
             sources: response.sources || [],
             citations: response.citations || [],
+            suggested_questions: response.suggested_questions || [],
           },
         ],
         newTitle
@@ -663,6 +665,7 @@ function AppContent() {
               onShareChat={handleShareChat}
               sessionId={activeChatId}
               onRegenerate={handleRegenerate}
+              onSendSuggested={handleSend}
             />
             {error && (
               <div className="error-banner">

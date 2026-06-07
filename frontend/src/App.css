@@ -4119,3 +4119,39 @@ body {
   font-size: 0.75rem;
   color: var(--text);
 }
+
+/* ── Suggested Questions Chips ── */
+.suggested-questions-container {
+  margin-top: 0.8rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.8rem;
+}
+
+.suggested-questions-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 0.4rem;
+}
+
+.suggested-q-chip {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.suggested-q-chip:hover {
+  background: rgba(180, 83, 9, 0.08);
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateX(4px);
+}

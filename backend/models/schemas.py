@@ -33,6 +33,7 @@ class ChatResponse(BaseModel):
     answer: str
     sources: List[Source] = []
     citations: List[Citation] = []
+    suggested_questions: List[str] = []
 
 # ── Ingest ────────────────────────────────────────────────────────────────────
 

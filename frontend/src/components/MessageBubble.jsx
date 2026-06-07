@@ -45,7 +45,7 @@ const cleanUserContent = (text) => {
   return text.split(/\n\nAttached:/)[0].trim();
 };
 
-export default function MessageBubble({ message, messageIndex, onEditMessage, onShareChat, sessionId, onRegenerate }) {
+export default function MessageBubble({ message, messageIndex, onEditMessage, onShareChat, sessionId, onRegenerate, onSendSuggested }) {
   const { role, content, intent, sources } = message;
   const isUser = role === "user";
   const intentMeta = INTENT_LABELS[intent] || null;
@@ -226,6 +226,24 @@ export default function MessageBubble({ message, messageIndex, onEditMessage, on
                 {showAllSources ? "Show fewer" : `+${sources.length - 3} more sources`}
               </button>
             )}
+          </div>
+        )}
+
+        {/* Suggested Questions */}
+        {!isUser && message.suggested_questions && message.suggested_questions.length > 0 && (
+          <div className="suggested-questions-container">
+            <p style={styles.sourcesLabel}>Suggested Follow-ups</p>
+            <div className="suggested-questions-chips">
+              {message.suggested_questions.map((q, i) => (
+                <button
+                  key={i}
+                  className="suggested-q-chip"
+                  onClick={() => onSendSuggested?.(q)}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
