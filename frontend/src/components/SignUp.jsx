@@ -188,6 +188,16 @@ export default function SignUp({ onSwitchToLogin }) {
           <p className="auth-terms">
             By continuing, you agree to our Terms of Service and Privacy Policy
           </p>
+
+          <p style={{
+            fontSize: "0.72rem",
+            color: "var(--text-muted, #6b7280)",
+            textAlign: "center",
+            marginTop: "1.5rem",
+            opacity: 0.85
+          }}>
+            Developed by <strong>Ram Kapadia</strong> & <strong>Arnav Narula</strong>
+          </p>
         </div>
       </div>
 

@@ -221,6 +221,19 @@ export default function Sidebar({
             </div>
           </div>
         )}
+
+        {/* Developer Credits */}
+        <div style={{
+          textAlign: "center",
+          fontSize: "0.7rem",
+          color: "var(--text-muted)",
+          marginTop: "0.8rem",
+          paddingTop: "0.8rem",
+          borderTop: "1px dashed var(--border)",
+          opacity: 0.8
+        }}>
+          Created by <strong>Ram Kapadia</strong> & <strong>Arnav Narula</strong>
+        </div>
       </div>
     </aside>
   );
