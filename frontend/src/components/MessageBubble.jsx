@@ -7,21 +7,21 @@ import SourceViewer from "./SourceViewer";
 import { submitFeedback } from "../services/api";
 
 const INTENT_LABELS = {
-  definition:     { label: "Definition",     color: "var(--intent-definition)" },
-  case_lookup:    { label: "Case Law",       color: "var(--intent-caselaw)" },
-  statute_lookup: { label: "Statute",        color: "var(--intent-statute)" },
-  irac_analysis:  { label: "IRAC Analysis",  color: "var(--intent-irac)" },
+  definition: { label: "Definition", color: "var(--intent-definition)" },
+  case_lookup: { label: "Case Law", color: "var(--intent-caselaw)" },
+  statute_lookup: { label: "Statute", color: "var(--intent-statute)" },
+  irac_analysis: { label: "IRAC Analysis", color: "var(--intent-irac)" },
   filac_analysis: { label: "FILAC Analysis", color: "var(--intent-irac)" },
-  idar_analysis:  { label: "IDAR · Dharma",  color: "var(--intent-idar)" },
-  comparative:    { label: "Comparative",    color: "var(--intent-general)" },
-  follow_up:      { label: "Follow-up",      color: "var(--intent-general)" },
-  general_qa:     { label: "General",        color: "var(--intent-general)" },
+  idar_analysis: { label: "IDAR · Dharma", color: "var(--intent-idar)" },
+  comparative: { label: "Comparative", color: "var(--intent-general)" },
+  follow_up: { label: "Follow-up", color: "var(--intent-general)" },
+  general_qa: { label: "General", color: "var(--intent-general)" },
   // legacy labels
-  case_law:       { label: "Case Law",       color: "var(--intent-caselaw)" },
-  statute:        { label: "Statute",        color: "var(--intent-statute)" },
-  legal_reasoning:{ label: "IRAC Analysis",  color: "var(--intent-irac)" },
-  idar:           { label: "IDAR · Dharma",  color: "var(--intent-idar)" },
-  general:        { label: "General",        color: "var(--intent-general)" },
+  case_law: { label: "Case Law", color: "var(--intent-caselaw)" },
+  statute: { label: "Statute", color: "var(--intent-statute)" },
+  legal_reasoning: { label: "IRAC Analysis", color: "var(--intent-irac)" },
+  idar: { label: "IDAR · Dharma", color: "var(--intent-idar)" },
+  general: { label: "General", color: "var(--intent-general)" },
 };
 
 const stripMarkdown = (md) => {
@@ -144,9 +144,9 @@ export default function MessageBubble({ message, messageIndex, onEditMessage, on
                   className="user-edit-textarea"
                   value={editText}
                   onChange={(e) => {
-                     setEditText(e.target.value);
-                     e.target.style.height = "auto";
-                     e.target.style.height = e.target.scrollHeight + "px";
+                    setEditText(e.target.value);
+                    e.target.style.height = "auto";
+                    e.target.style.height = e.target.scrollHeight + "px";
                   }}
                   onKeyDown={handleEditKeyDown}
                 />
@@ -165,10 +165,10 @@ export default function MessageBubble({ message, messageIndex, onEditMessage, on
                       if (isImage) {
                         return (
                           <div key={idx} className="bubble-attachment-preview-wrap">
-                            <img 
-                              src={att.preview} 
-                              alt={att.name} 
-                              className="bubble-attachment-img" 
+                            <img
+                              src={att.preview}
+                              alt={att.name}
+                              className="bubble-attachment-img"
                               onClick={() => window.open(att.preview, "_blank")}
                             />
                             <span className="bubble-attachment-name" title={att.name}>{att.name}</span>

@@ -151,7 +151,7 @@ function AppContent() {
       if (currentUid) {
         let savedChats = localStorage.getItem(`dharma-chats-${currentUid}`);
         let savedActiveId = localStorage.getItem(`dharma-active-chat-id-${currentUid}`);
-        
+
         // Migrate legacy single-user chats to user-scoped keys
         if (!savedChats) {
           const legacyChats = localStorage.getItem("dharma-chats");
@@ -195,7 +195,7 @@ function AppContent() {
     if (user && !showSplash) {
       const userProfileKey = `dharma-profile-${user.uid}`;
       let profile = localStorage.getItem(userProfileKey);
-      
+
       // Migrate legacy profile
       if (!profile) {
         const legacyProfile = localStorage.getItem("dharma-profile");
@@ -304,9 +304,9 @@ function AppContent() {
 
   if (showSplash) {
     return (
-      <SplashScreen 
+      <SplashScreen
         text={splashText}
-        onComplete={handleSplashComplete} 
+        onComplete={handleSplashComplete}
       />
     );
   }
@@ -365,10 +365,10 @@ function AppContent() {
       ? `\n\nAttached: ${attachments.map((att) => att.name).join(", ")}`
       : "";
     const displayText = `${text}${attachmentLabel}`.trim() || "Attached files";
-    const userMsg = { 
-      role: "user", 
-      content: displayText, 
-      attachments: processedAttachments 
+    const userMsg = {
+      role: "user",
+      content: displayText,
+      attachments: processedAttachments
     };
     const updatedMessages = [...messages, userMsg];
 
@@ -462,8 +462,8 @@ function AppContent() {
       : "";
     const fullContent = `${newContent}${attachmentLabel}`.trim();
 
-    const editedUserMsg = { 
-      role: "user", 
+    const editedUserMsg = {
+      role: "user",
       content: fullContent,
       attachments: originalAttachments
     };
@@ -682,33 +682,51 @@ function AppContent() {
         </div>
 
         {activePanel === "chat" && (
-          <>
-            <ChatWindow
-              messages={messages}
-              loading={isLoadingReply}
-              onFeatureClick={(prefix) => { setPrefillText(prefix); setActivePanel("chat"); }}
-              userName={user?.displayName || user?.email?.split("@")[0] || ""}
-              onEditMessage={handleEditMessage}
-              onShareChat={handleShareChat}
-              sessionId={activeChatId}
-              onRegenerate={handleRegenerate}
-              onSendSuggested={handleSend}
-              thinkingSteps={thinkingSteps}
-            />
-            {error && (
-              <div className="error-banner">
-                <AlertTriangle size={16} style={{ marginRight: 6 }} /> {error}
+          messages.length === 0 ? (
+            <div className="centered-welcome-container">
+              <div className="centered-welcome-content">
+                <h1 className="centered-greeting">
+                  Ask away, {user?.displayName || user?.email?.split("@")[0] || "Ram"}!
+                </h1>
+                <InputBox
+                  onSend={handleSend}
+                  loading={isLoadingReply}
+                  prefillText={prefillText}
+                  onPrefillUsed={() => setPrefillText("")}
+                  messages={messages}
+                  onCompactContext={handleNewChat}
+                />
               </div>
-            )}
-            <InputBox
-              onSend={handleSend}
-              loading={isLoadingReply}
-              prefillText={prefillText}
-              onPrefillUsed={() => setPrefillText("")}
-              messages={messages}
-              onCompactContext={handleNewChat}
-            />
-          </>
+            </div>
+          ) : (
+            <>
+              <ChatWindow
+                messages={messages}
+                loading={isLoadingReply}
+                onFeatureClick={(prefix) => { setPrefillText(prefix); setActivePanel("chat"); }}
+                userName={user?.displayName || user?.email?.split("@")[0] || ""}
+                onEditMessage={handleEditMessage}
+                onShareChat={handleShareChat}
+                sessionId={activeChatId}
+                onRegenerate={handleRegenerate}
+                onSendSuggested={handleSend}
+                thinkingSteps={thinkingSteps}
+              />
+              {error && (
+                <div className="error-banner">
+                  <AlertTriangle size={16} style={{ marginRight: 6 }} /> {error}
+                </div>
+              )}
+              <InputBox
+                onSend={handleSend}
+                loading={isLoadingReply}
+                prefillText={prefillText}
+                onPrefillUsed={() => setPrefillText("")}
+                messages={messages}
+                onCompactContext={handleNewChat}
+              />
+            </>
+          )
         )}
 
         {activePanel === "sources" && (
