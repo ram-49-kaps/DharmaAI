@@ -160,16 +160,7 @@ export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, 
           </div>
         </div>
       )}
-      {/* Quick prompts */}
-      {messages.length === 0 && (
-        <div className="quick-prompts">
-          {QUICK_PROMPTS.map((p, i) => (
-            <button key={i} className="quick-btn" onClick={() => { setText(p); textareaRef.current?.focus(); }}>
-              {p}
-            </button>
-          ))}
-        </div>
-      )}
+
 
       {/* Attachment previews */}
       {attachments.length > 0 && (

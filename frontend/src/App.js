@@ -250,6 +250,16 @@ function AppContent() {
   const messages = activeChat.messages;
   const latestSources = [...messages].reverse().find((m) => m.role === "assistant")?.sources || [];
 
+  const getProfileName = () => {
+    try {
+      const profileKey = user ? `dharma-profile-${user.uid}` : "dharma-profile";
+      const savedProfile = JSON.parse(localStorage.getItem(profileKey) || "{}");
+      if (savedProfile.name) return savedProfile.name;
+    } catch {}
+    return user?.displayName || user?.email?.split("@")[0] || "Ram";
+  };
+  const profileName = getProfileName();
+
   if (loading) {
     return (
       <div className="app-skeleton-layout" data-theme={theme}>
@@ -686,7 +696,7 @@ function AppContent() {
             <div className="centered-welcome-container">
               <div className="centered-welcome-content">
                 <h1 className="centered-greeting">
-                  Ask away, {user?.displayName || user?.email?.split("@")[0] || "Ram"}!
+                  Ask away, {profileName}!
                 </h1>
                 <InputBox
                   onSend={handleSend}
@@ -704,7 +714,7 @@ function AppContent() {
                 messages={messages}
                 loading={isLoadingReply}
                 onFeatureClick={(prefix) => { setPrefillText(prefix); setActivePanel("chat"); }}
-                userName={user?.displayName || user?.email?.split("@")[0] || ""}
+                userName={profileName}
                 onEditMessage={handleEditMessage}
                 onShareChat={handleShareChat}
                 sessionId={activeChatId}
