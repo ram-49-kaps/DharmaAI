@@ -11,15 +11,20 @@ const THINKING_STEPS = [
   "Preparing comprehensive response...",
 ];
 
-function ThinkingAnimation() {
+function ThinkingAnimation({ thinkingSteps }) {
   const [stepIndex, setStepIndex] = useState(0);
+  const steps = (Array.isArray(thinkingSteps) && thinkingSteps.length > 0) ? thinkingSteps : THINKING_STEPS;
+
+  useEffect(() => {
+    setStepIndex(0);
+  }, [thinkingSteps]);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setStepIndex((prev) => (prev + 1) % THINKING_STEPS.length);
+      setStepIndex((prev) => (prev + 1) % steps.length);
     }, 2500);
     return () => clearInterval(interval);
-  }, []);
+  }, [steps.length]);
 
   return (
     <div className="thinking-animation">
@@ -29,7 +34,7 @@ function ThinkingAnimation() {
       <div className="thinking-content">
         <div className="thinking-header">
           <span className="thinking-pulse-dot" />
-          <span className="thinking-text">{THINKING_STEPS[stepIndex]}</span>
+          <span className="thinking-text">{steps[stepIndex]}</span>
         </div>
         <div className="thinking-visual">
           <div className="thinking-line" />
@@ -40,7 +45,7 @@ function ThinkingAnimation() {
   );
 }
 
-export default function ChatWindow({ messages, loading, onFeatureClick, userName, onEditMessage, onShareChat, sessionId, onRegenerate, onSendSuggested }) {
+export default function ChatWindow({ messages, loading, onFeatureClick, userName, onEditMessage, onShareChat, sessionId, onRegenerate, onSendSuggested, thinkingSteps }) {
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -101,7 +106,7 @@ export default function ChatWindow({ messages, loading, onFeatureClick, userName
         ))
       )}
 
-      {loading && <ThinkingAnimation />}
+      {loading && <ThinkingAnimation thinkingSteps={thinkingSteps} />}
 
 
       <div ref={bottomRef} />

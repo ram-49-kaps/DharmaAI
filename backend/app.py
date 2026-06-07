@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 
 from models.schemas import (
     ChatRequest, ChatResponse, Source, Citation,
+    ThinkingRequest,
     GlossaryResponse,
     SearchResponse, SearchResult,
     TemplatesResponse, Template,
@@ -55,6 +56,7 @@ from chains.idar import run_idar_chain
 from chains.general_qa import run_general_chain
 from chains.follow_up import run_follow_up_chain, is_follow_up
 from chains.conversational import run_conversational_chain
+from chains.thinking import run_thinking_steps_chain
 from services.pdf_ingestion import PDFIngestor
 
 
@@ -246,6 +248,21 @@ async def _extract_attachment_context(files: list[UploadFile]) -> str:
             )
 
     return "\n\n".join(sections)
+
+
+@app.post("/api/thinking")
+async def get_thinking_steps(req: ThinkingRequest, user: dict = Depends(get_current_user)):
+    """Fast endpoint to generate 3 custom thinking steps for a query."""
+    try:
+        steps = run_thinking_steps_chain(req.query)
+        return steps
+    except Exception as e:
+        logger.error(f"[Thinking] API Error: {e}")
+        return [
+            "Analyzing legal query...",
+            "Searching jurisprudential records...",
+            "Preparing comprehensive synthesis..."
+        ]
 
 
 async def _chat_request_from_request(request: Request) -> ChatRequest:

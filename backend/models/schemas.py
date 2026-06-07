@@ -13,6 +13,9 @@ class ChatRequest(BaseModel):
     session_id: Optional[str] = None
     level: Optional[str] = None  # "beginner" | "intermediate" | "advanced" | "practitioner"
 
+class ThinkingRequest(BaseModel):
+    query: str
+
 class Citation(BaseModel):
     """Structured citation with full source information."""
     source_type: str     # "IKS" | "Statute" | "Case" | "Principle"

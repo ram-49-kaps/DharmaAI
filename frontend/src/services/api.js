@@ -50,6 +50,11 @@ export const sendMessage = async (message, history = [], sessionId = null, signa
   return data; // { intent, answer, sources, citations }
 };
 
+export const getThinkingSteps = async (query) => {
+  const { data } = await API.post("/thinking", { query });
+  return data;
+};
+
 export const getGlossaryTerm = async (term) => {
   const { data } = await API.get(`/glossary/${encodeURIComponent(term)}`);
   return data;

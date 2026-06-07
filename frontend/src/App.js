@@ -3,7 +3,7 @@ import { AlertTriangle, Menu, PanelLeft, Share2, Copy, Check, X } from "lucide-r
 import "./App.css";
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import { setAuthToken, sendMessage, shareChat } from "./services/api";
+import { setAuthToken, sendMessage, shareChat, getThinkingSteps } from "./services/api";
 import Login from "./components/Login";
 import SignUp from "./components/SignUp";
 import Sidebar from "./components/Sidebar";
@@ -89,6 +89,12 @@ function ShareModal({ shareUrl, onClose }) {
 }
 
 // ── Main app (authenticated) ──────────────────────────────────────────────────
+
+const DEFAULT_THINKING_STEPS = [
+  "Analyzing legal query...",
+  "Searching jurisprudential records...",
+  "Preparing comprehensive synthesis..."
+];
 
 function AppContent() {
   const { user, token, loading, logout } = useAuth();
@@ -215,6 +221,7 @@ function AppContent() {
     }
   }, [user, showSplash]);
   const [isLoadingReply, setIsLoadingReply] = useState(false);
+  const [thinkingSteps, setThinkingSteps] = useState(DEFAULT_THINKING_STEPS);
   const [abortController, setAbortController] = useState(null);
   const [activePanel, setActivePanel] = useState("chat");
   const [prefillText, setPrefillText] = useState("");
@@ -372,6 +379,16 @@ function AppContent() {
 
     updateActiveChat(updatedMessages, newTitle);
     setIsLoadingReply(true);
+    setThinkingSteps(DEFAULT_THINKING_STEPS);
+    getThinkingSteps(text || "Analyzing attached files")
+      .then((steps) => {
+        if (Array.isArray(steps) && steps.length > 0) {
+          setThinkingSteps(steps);
+        }
+      })
+      .catch((err) => {
+        console.error("Thinking steps fetch failed:", err);
+      });
     setError("");
     setActivePanel("chat");
 
@@ -459,6 +476,16 @@ function AppContent() {
 
     updateActiveChat(updatedMessages, newTitle);
     setIsLoadingReply(true);
+    setThinkingSteps(DEFAULT_THINKING_STEPS);
+    getThinkingSteps(newContent || "Regenerating response")
+      .then((steps) => {
+        if (Array.isArray(steps) && steps.length > 0) {
+          setThinkingSteps(steps);
+        }
+      })
+      .catch((err) => {
+        console.error("Thinking steps fetch failed:", err);
+      });
     setError("");
 
     const controller = new AbortController();
@@ -666,6 +693,7 @@ function AppContent() {
               sessionId={activeChatId}
               onRegenerate={handleRegenerate}
               onSendSuggested={handleSend}
+              thinkingSteps={thinkingSteps}
             />
             {error && (
               <div className="error-banner">
