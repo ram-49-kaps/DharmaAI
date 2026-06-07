@@ -179,7 +179,7 @@ async def _extract_attachment_context(files: list[UploadFile]) -> str:
         return ""
 
     sections = []
-    for file in files[:5]:
+    for file in files[:10]:
         content = await file.read()
         if len(content) > 20 * 1024 * 1024:
             raise HTTPException(status_code=413, detail=f"{file.filename} is too large (max 20 MB)")

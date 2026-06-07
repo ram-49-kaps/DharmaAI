@@ -65,7 +65,7 @@ export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, 
           type: file.type,
           preview: file.type.startsWith("image/") ? URL.createObjectURL(file) : null,
         }));
-        setAttachments(prev => [...prev, ...newAttachments].slice(0, 5));
+        setAttachments(prev => [...prev, ...newAttachments].slice(0, 10));
         e.dataTransfer.clearData();
       }
     };
@@ -120,7 +120,7 @@ export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, 
       type: file.type,
       preview: file.type.startsWith("image/") ? URL.createObjectURL(file) : null,
     }));
-    setAttachments(prev => [...prev, ...newAttachments].slice(0, 5)); // Max 5 files
+    setAttachments(prev => [...prev, ...newAttachments].slice(0, 10)); // Max 10 files
     e.target.value = ""; // Reset input
   };
 
@@ -156,7 +156,7 @@ export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, 
               <Paperclip size={40} className="drag-drop-icon" />
             </div>
             <h3>Drop your files here</h3>
-            <p>Attach legal documents, screenshots, or images to your query (Max 5 files, up to 20MB each)</p>
+            <p>Attach legal documents, screenshots, or images to your query (Max 10 files, up to 20MB each)</p>
           </div>
         </div>
       )}
@@ -223,7 +223,7 @@ export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, 
           </button>
           
           <span className="upload-limits-tip" style={{ fontSize: "0.68rem", color: "var(--text-muted)", marginLeft: "8px", alignSelf: "center" }}>
-            Max 5 files (up to 20MB/file)
+            Max 10 files (up to 20MB/file)
           </span>
 
           <button 
