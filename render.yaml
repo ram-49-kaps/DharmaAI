@@ -1,0 +1,23 @@
+services:
+  # Backend Web Service (Docker-based)
+  - type: web
+    name: dharma-ai-backend
+    env: docker
+    rootDir: backend
+    plan: free
+    envVars:
+      - key: PORT
+        value: 8000
+      # NOTE: Please configure your environment variables (such as GEMINI_API_KEY, GROQ_API_KEY, etc.) in the Render dashboard.
+
+  # Frontend Static Site (React)
+  - type: web
+    name: dharma-ai-frontend
+    env: static
+    rootDir: frontend
+    buildCommand: npm run build
+    publishDir: build
+    plan: free
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://dharma-ai-backend.onrender.com # REPLACE with your actual deployed Render backend URL
