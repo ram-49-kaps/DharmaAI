@@ -260,6 +260,33 @@ function AppContent() {
   };
   const profileName = getProfileName();
 
+  const [greetingText, setGreetingText] = useState("");
+
+  useEffect(() => {
+    if (!profileName) return;
+    const hour = new Date().getHours();
+    const greetings = [];
+    if (hour >= 5 && hour < 12) {
+      greetings.push(`Good morning, ${profileName}!`);
+      greetings.push(`Start your morning research, ${profileName}.`);
+      greetings.push(`What legal queries shall we resolve this morning, ${profileName}?`);
+    } else if (hour >= 12 && hour < 17) {
+      greetings.push(`Good afternoon, ${profileName}!`);
+      greetings.push(`Ready for some afternoon legal research, ${profileName}?`);
+      greetings.push(`How is your research shaping up this afternoon, ${profileName}?`);
+    } else if (hour >= 17 && hour < 22) {
+      greetings.push(`Good evening, ${profileName}!`);
+      greetings.push(`Let's wrap up today's case laws, ${profileName}.`);
+      greetings.push(`What constitutional laws are we checking this evening, ${profileName}?`);
+    } else {
+      greetings.push(`Working late, ${profileName}?`);
+      greetings.push(`Hello, ${profileName}. Burning the midnight oil?`);
+      greetings.push(`Need help with late-night legal analysis, ${profileName}?`);
+    }
+    const randomIndex = Math.floor(Math.random() * greetings.length);
+    setGreetingText(greetings[randomIndex]);
+  }, [profileName]);
+
   if (loading) {
     return (
       <div className="app-skeleton-layout" data-theme={theme}>
@@ -696,7 +723,7 @@ function AppContent() {
             <div className="centered-welcome-container">
               <div className="centered-welcome-content">
                 <h1 className="centered-greeting">
-                  Ask away, {profileName}!
+                  {greetingText || `Ask away, ${profileName}!`}
                 </h1>
                 <InputBox
                   onSend={handleSend}
