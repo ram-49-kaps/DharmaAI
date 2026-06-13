@@ -95,6 +95,21 @@ export const submitFeedback = async (feedback) => {
   return data;
 };
 
+export const getSessions = async () => {
+  const { data } = await API.get("/sessions");
+  return data; // { sessions: [{session_id, title, last_active, message_count}] }
+};
+
+export const getSessionMessages = async (sessionId) => {
+  const { data } = await API.get(`/sessions/${sessionId}`);
+  return data; // { session_id, messages: [{role, content, created_at}] }
+};
+
+export const deleteSession = async (sessionId) => {
+  const { data } = await API.delete(`/sessions/${sessionId}`);
+  return data;
+};
+
 export const shareChat = async (title, messages) => {
   const { data } = await API.post("/share", { title, messages });
   return data; // { share_id, share_url }
