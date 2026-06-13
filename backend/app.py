@@ -9,6 +9,7 @@ import os
 import sys
 import tempfile
 import uuid
+from datetime import datetime, timezone
 
 # Ensure backend root is on path
 sys.path.insert(0, os.path.dirname(__file__))
@@ -41,7 +42,7 @@ from models.schemas import (
     ShareChatRequest,
     ShareChatResponse,
 )
-from db.database import init_db, get_connection
+from db.database import init_db, get_supabase
 from db.seed import seed, seed_chromadb
 from services.rag_engine import get_rag_engine
 from services.knowledge_graph import get_knowledge_graph
@@ -119,13 +120,12 @@ app.include_router(ingest_router)
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _save_message(session_id: str, user_id: str, role: str, content: str):
-    conn = get_connection()
-    conn.execute(
-        "INSERT INTO chat_history (session_id, user_id, role, content) VALUES (?, ?, ?, ?)",
-        (session_id, user_id, role, content)
-    )
-    conn.commit()
-    conn.close()
+    get_supabase().table("chat_history").insert({
+        "session_id": session_id,
+        "user_id": user_id,
+        "role": role,
+        "content": content,
+    }).execute()
 
 
 def _sources_to_citations(sources: list) -> list:
@@ -150,10 +150,12 @@ def _user_profile_from_row(row, user: dict) -> UserProfile:
             name=user.get("name", ""),
             picture=user.get("picture", ""),
         )
-    try:
-        interests = json.loads(row["areas_of_interest"] or "[]")
-    except json.JSONDecodeError:
-        interests = []
+    interests = row.get("areas_of_interest") or []
+    if isinstance(interests, str):
+        try:
+            interests = json.loads(interests)
+        except json.JSONDecodeError:
+            interests = []
     return UserProfile(
         uid=row["uid"],
         email=row["email"],
@@ -167,9 +169,8 @@ def _user_profile_from_row(row, user: dict) -> UserProfile:
 
 
 def _get_saved_profile(uid: str, user: dict) -> UserProfile:
-    conn = get_connection()
-    row = conn.execute("SELECT * FROM user_profiles WHERE uid = ?", (uid,)).fetchone()
-    conn.close()
+    res = get_supabase().table("user_profiles").select("*").eq("uid", uid).execute()
+    row = res.data[0] if res.data else None
     return _user_profile_from_row(row, user)
 
 
@@ -465,35 +466,17 @@ async def update_profile(payload: ProfileUpdate, user: dict = Depends(get_curren
     if updated["level"] not in allowed_levels:
         raise HTTPException(status_code=400, detail=f"level must be one of {sorted(allowed_levels)}")
 
-    conn = get_connection()
-    conn.execute(
-        """
-        INSERT INTO user_profiles
-            (uid, email, name, picture, level, institution, year_of_study, areas_of_interest, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        ON CONFLICT(uid) DO UPDATE SET
-            email = excluded.email,
-            name = excluded.name,
-            picture = excluded.picture,
-            level = excluded.level,
-            institution = excluded.institution,
-            year_of_study = excluded.year_of_study,
-            areas_of_interest = excluded.areas_of_interest,
-            updated_at = CURRENT_TIMESTAMP
-        """,
-        (
-            uid,
-            updated["email"],
-            updated["name"],
-            updated["picture"],
-            updated["level"],
-            updated["institution"],
-            updated["year_of_study"],
-            json.dumps(updated["areas_of_interest"]),
-        ),
-    )
-    conn.commit()
-    conn.close()
+    get_supabase().table("user_profiles").upsert({
+        "uid": uid,
+        "email": updated["email"],
+        "name": updated["name"],
+        "picture": updated["picture"],
+        "level": updated["level"],
+        "institution": updated["institution"],
+        "year_of_study": updated["year_of_study"],
+        "areas_of_interest": updated["areas_of_interest"],
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }).execute()
     return _get_saved_profile(uid, user)
 
 
@@ -505,26 +488,16 @@ async def create_feedback(payload: FeedbackRequest, user: dict = Depends(get_cur
         raise HTTPException(status_code=400, detail=f"feedback_type must be one of {sorted(allowed_types)}")
 
     uid = user.get("uid", "anonymous")
-    conn = get_connection()
-    cur = conn.execute(
-        """
-        INSERT INTO feedback
-            (user_id, message_id, session_id, feedback_type, comment, query, response)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            uid,
-            payload.message_id,
-            payload.session_id,
-            payload.feedback_type,
-            payload.comment,
-            payload.query,
-            payload.response,
-        ),
-    )
-    conn.commit()
-    feedback_id = str(cur.lastrowid)
-    conn.close()
+    res = get_supabase().table("feedback").insert({
+        "user_id": uid,
+        "message_id": payload.message_id,
+        "session_id": payload.session_id,
+        "feedback_type": payload.feedback_type,
+        "comment": payload.comment,
+        "query": payload.query,
+        "response": payload.response,
+    }).execute()
+    feedback_id = str(res.data[0]["id"]) if res.data else "0"
     return FeedbackResponse(status="success", feedback_id=feedback_id)
 
 
@@ -534,29 +507,17 @@ async def create_feedback(payload: FeedbackRequest, user: dict = Depends(get_cur
 async def list_sessions(user: dict = Depends(get_current_user)):
     """List sessions for the current user."""
     uid = user.get("uid", "anonymous")
-    conn = get_connection()
-    rows = conn.execute("""
-        SELECT session_id,
-               MIN(content) AS first_message,
-               MAX(created_at) AS last_active,
-               COUNT(*) AS message_count
-        FROM chat_history
-        WHERE role = 'user' AND user_id = ?
-        GROUP BY session_id
-        ORDER BY MAX(created_at) DESC
-        LIMIT 50
-    """, (uid,)).fetchall()
-    conn.close()
+    res = get_supabase().rpc("get_user_sessions", {"p_user_id": uid}).execute()
 
     sessions = []
-    for r in rows:
+    for r in (res.data or []):
         title = r["first_message"] or "Untitled"
         if len(title) > 40:
             title = title[:40] + "..."
         sessions.append(ChatSession(
             session_id=r["session_id"],
             title=title,
-            last_active=r["last_active"] or "",
+            last_active=str(r["last_active"] or ""),
             message_count=r["message_count"],
         ))
     return ChatSessionList(sessions=sessions)
@@ -565,28 +526,20 @@ async def list_sessions(user: dict = Depends(get_current_user)):
 @app.get("/api/sessions/{session_id}")
 async def get_session(session_id: str, user: dict = Depends(get_current_user)):
     uid = user.get("uid", "anonymous")
-    conn = get_connection()
-    rows = conn.execute(
-        "SELECT role, content, created_at FROM chat_history "
-        "WHERE session_id = ? AND user_id = ? ORDER BY created_at",
-        (session_id, uid)
-    ).fetchall()
-    conn.close()
-    if not rows:
+    res = get_supabase().table("chat_history").select("role, content, created_at") \
+        .eq("session_id", session_id).eq("user_id", uid).order("created_at").execute()
+    if not res.data:
         raise HTTPException(status_code=404, detail="Session not found")
     return {
         "session_id": session_id,
-        "messages": [{"role": r["role"], "content": r["content"], "created_at": r["created_at"]} for r in rows],
+        "messages": [{"role": r["role"], "content": r["content"], "created_at": str(r["created_at"])} for r in res.data],
     }
 
 
 @app.delete("/api/sessions/{session_id}")
 async def delete_session(session_id: str, user: dict = Depends(get_current_user)):
     uid = user.get("uid", "anonymous")
-    conn = get_connection()
-    conn.execute("DELETE FROM chat_history WHERE session_id = ? AND user_id = ?", (session_id, uid))
-    conn.commit()
-    conn.close()
+    get_supabase().table("chat_history").delete().eq("session_id", session_id).eq("user_id", uid).execute()
     return {"status": "deleted"}
 
 
@@ -594,44 +547,32 @@ async def delete_session(session_id: str, user: dict = Depends(get_current_user)
 
 @app.get("/api/glossary/{term}", response_model=GlossaryResponse)
 async def get_glossary(term: str, user: dict = Depends(get_current_user)):
-    conn = get_connection()
-    row = conn.execute(
-        "SELECT term, definition, example FROM glossary WHERE LOWER(term) = LOWER(?)", (term,)
-    ).fetchone()
-    conn.close()
-    if not row:
+    res = get_supabase().table("glossary").select("term, definition, example").ilike("term", term).execute()
+    if not res.data:
         raise HTTPException(status_code=404, detail=f"Term '{term}' not found in glossary")
+    row = res.data[0]
     return GlossaryResponse(term=row["term"], definition=row["definition"], example=row["example"])
 
 
 @app.get("/api/glossary")
 async def list_glossary(user: dict = Depends(get_current_user)):
-    conn = get_connection()
-    rows = conn.execute("SELECT term FROM glossary ORDER BY term").fetchall()
-    conn.close()
-    return {"terms": [r["term"] for r in rows]}
+    res = get_supabase().table("glossary").select("term").order("term").execute()
+    return {"terms": [r["term"] for r in (res.data or [])]}
 
 
 # ── Search ────────────────────────────────────────────────────────────────────
 
 @app.get("/api/search", response_model=SearchResponse)
 async def search(q: str = Query(..., min_length=1), user: dict = Depends(get_current_user)):
-    conn = get_connection()
-    pattern = f"%{q}%"
-    cases = conn.execute(
-        "SELECT title, citation, snippet FROM cases WHERE title LIKE ? OR snippet LIKE ? LIMIT 5",
-        (pattern, pattern)
-    ).fetchall()
-    statutes = conn.execute(
-        "SELECT title, citation, snippet FROM statutes WHERE title LIKE ? OR snippet LIKE ? LIMIT 5",
-        (pattern, pattern)
-    ).fetchall()
-    conn.close()
+    cases_res = get_supabase().table("cases").select("title, citation, snippet") \
+        .or_(f"title.ilike.%{q}%,snippet.ilike.%{q}%").limit(5).execute()
+    statutes_res = get_supabase().table("statutes").select("title, citation, snippet") \
+        .or_(f"title.ilike.%{q}%,snippet.ilike.%{q}%").limit(5).execute()
 
     results = []
-    for r in cases:
+    for r in (cases_res.data or []):
         results.append(SearchResult(title=r["title"], snippet=r["snippet"] or "", type="case"))
-    for r in statutes:
+    for r in (statutes_res.data or []):
         results.append(SearchResult(title=r["title"], snippet=r["snippet"] or "", type="statute"))
     return SearchResponse(results=results)
 
@@ -680,13 +621,12 @@ async def share_chat(payload: ShareChatRequest, request: Request, user: dict = D
     uid = user.get("uid", "anonymous")
     share_id = uuid.uuid4().hex[:12]
 
-    conn = get_connection()
-    conn.execute(
-        "INSERT INTO shared_chats (share_id, user_id, title, messages) VALUES (?, ?, ?, ?)",
-        (share_id, uid, payload.title or "Shared Chat", json.dumps(payload.messages)),
-    )
-    conn.commit()
-    conn.close()
+    get_supabase().table("shared_chats").insert({
+        "share_id": share_id,
+        "user_id": uid,
+        "title": payload.title or "Shared Chat",
+        "messages": payload.messages,
+    }).execute()
 
     # Build the share URL from the request origin
     origin = request.headers.get("origin") or request.headers.get("referer", "").rstrip("/")
@@ -700,25 +640,17 @@ async def share_chat(payload: ShareChatRequest, request: Request, user: dict = D
 @app.get("/api/share/{share_id}")
 async def get_shared_chat(share_id: str):
     """Public endpoint — no auth required. Returns shared chat data."""
-    conn = get_connection()
-    row = conn.execute(
-        "SELECT share_id, title, messages, created_at FROM shared_chats WHERE share_id = ?",
-        (share_id,)
-    ).fetchone()
-    conn.close()
-    if not row:
+    res = get_supabase().table("shared_chats").select("share_id, title, messages, created_at") \
+        .eq("share_id", share_id).execute()
+    if not res.data:
         raise HTTPException(status_code=404, detail="Shared chat not found")
-
-    try:
-        messages = json.loads(row["messages"])
-    except json.JSONDecodeError:
-        messages = []
-
+    row = res.data[0]
+    messages = row["messages"] if isinstance(row["messages"], list) else []
     return {
         "share_id": row["share_id"],
         "title": row["title"],
         "messages": messages,
-        "created_at": row["created_at"],
+        "created_at": str(row["created_at"]),
     }
 
 
