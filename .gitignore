@@ -26,3 +26,6 @@ chroma_db/
 # Custom Database & Tooling
 chroma_db_v2/
 .kiro/
+
+# Collaborator setup doc (contains secrets)
+COLLABORATOR_SETUP.md

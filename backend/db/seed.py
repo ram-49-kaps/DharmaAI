@@ -9,7 +9,7 @@ import json
 # Ensure the backend directory is in the path for local imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from db.database import get_connection
+from db.database import get_supabase
 
 logger = logging.getLogger(__name__)
 
@@ -214,31 +214,26 @@ STATUTES = [
 
 
 def seed() -> None:
-    """Seed SQLite tables with initial data."""
-    conn = get_connection()
-    cur = conn.cursor()
+    """Seed Supabase tables with initial data (upsert — safe to run multiple times)."""
+    db = get_supabase()
 
-    cur.executemany(
-        "INSERT OR IGNORE INTO glossary (term, definition, example) VALUES (?, ?, ?)",
-        GLOSSARY
-    )
-    cur.executemany(
-        """INSERT OR IGNORE INTO cases
-           (title, citation, facts, issue, judgment, principle, snippet)
-           VALUES (?, ?, ?, ?, ?, ?, ?)""",
-        CASES
-    )
-    cur.executemany(
-        """INSERT OR IGNORE INTO statutes
-           (title, citation, description, snippet)
-           VALUES (?, ?, ?, ?)""",
-        STATUTES
-    )
+    glossary_rows = [{"term": t, "definition": d, "example": e} for t, d, e in GLOSSARY]
+    db.table("glossary").upsert(glossary_rows, on_conflict="term").execute()
 
-    conn.commit()
-    conn.close()
+    cases_rows = [
+        {"title": t, "citation": ci, "facts": f, "issue": i, "judgment": j, "principle": p, "snippet": s}
+        for t, ci, f, i, j, p, s in CASES
+    ]
+    db.table("cases").upsert(cases_rows, on_conflict="title").execute()
+
+    statutes_rows = [
+        {"title": t, "citation": ci, "description": d, "snippet": s}
+        for t, ci, d, s in STATUTES
+    ]
+    db.table("statutes").upsert(statutes_rows, on_conflict="title").execute()
+
     logger.info(
-        f"[Seed] {len(GLOSSARY)} glossary | {len(CASES)} cases | {len(STATUTES)} statutes inserted."
+        f"[Seed] {len(GLOSSARY)} glossary | {len(CASES)} cases | {len(STATUTES)} statutes upserted."
     )
 
 
