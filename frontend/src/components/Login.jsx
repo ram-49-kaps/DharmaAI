@@ -128,7 +128,7 @@ export default function Login({ onSwitchToSignUp }) {
             marginTop: "1.5rem",
             opacity: 0.85
           }}>
-            Developed by <strong>Ram Kapadia</strong> & <strong>Arnav Narula</strong>
+            Developed by <strong>Ram Kapadia</strong>, <strong>Arnav Narula</strong> & <strong>Saanvi Aggarwal</strong>
           </p>
         </div>
       </div>
