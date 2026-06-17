@@ -232,7 +232,7 @@ export default function Sidebar({
           borderTop: "1px dashed var(--border)",
           opacity: 0.8
         }}>
-          Created by <strong>Ram Kapadia</strong> & <strong>Arnav Narula</strong>
+          Created by <strong>Ram Kapadia</strong>, <strong>Arnav Narula</strong> & <strong>Saanvi Aggarwal</strong>
         </div>
       </div>
     </aside>
