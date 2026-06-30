@@ -242,7 +242,7 @@ function AppContent() {
 
     // Cache by time period (morning, afternoon, evening, night)
     const hour = now.getHours();
-    const timePeriod = hour < 12 ? "morning" : hour < 17 ? "afternoon" : hour < 22 ? "evening" : "night";
+    const timePeriod = (hour >= 5 && hour < 12) ? "morning" : (hour >= 12 && hour < 17) ? "afternoon" : (hour >= 17 && hour < 22) ? "evening" : "night";
     const dateKey = now.toISOString().slice(0, 10);
     const cacheKey = user ? `dharma-greeting-${user.uid}-${dateKey}-${timePeriod}` : `dharma-greeting-${dateKey}-${timePeriod}`;
 
@@ -260,8 +260,9 @@ function AppContent() {
     const lastGreeting = localStorage.getItem("dharma-last-greeting") || "";
     const recentTopic = session?.chats?.find(c => c.messages?.length > 0)?.title || "";
 
-    // Format current time (HH:MM) and day of week
-    const currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+    // Format current time (HH:MM AM/PM) and day of week, appending time period for LLM context
+    const formattedTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    const currentTime = `${formattedTime} (${timePeriod})`;
     const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' });
 
     setGreetingText(fallback);
@@ -558,22 +559,18 @@ Attached: ${attachments.map((att) => att.name).join(", ")}`
         activeChatId,
         controller.signal,
         attachments,
-        savedProfile.level || null
+        savedProfile.level || null,
+        handleStreamEvent,
+        selectedModel
       );
-      updateActiveChat(
-        [
-          ...updatedMessages,
-          {
-            role: "assistant",
-            content: response.answer,
-            intent: response.intent,
-            sources: response.sources || [],
-            citations: response.citations || [],
-            suggested_questions: response.suggested_questions || [],
-          },
-        ],
-        newTitle
-      );
+      // The assistant message is built via handleStreamEvent as it streams.
+      // We can just ensure the title is updated if needed.
+      if (messages.length === 0) {
+        updateActiveChat(
+          JSON.parse(JSON.stringify(session.chats.find(c => c.id === activeChatId)?.messages || [...updatedMessages, response])),
+          newTitle
+        );
+      }
     } catch (err) {
       if (err.name === "AbortError" || err.message === "canceled") {
         console.log("Request aborted");

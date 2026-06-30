@@ -2025,6 +2025,7 @@ body {
 .input-actions-row {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
   padding: 0.25rem 0.5rem;
 }
@@ -2654,7 +2655,7 @@ body {
     padding: 0.75rem 0.5rem;
     font-size: 1rem;
   }
-  .action-btn-text { display: none; }
+  .action-btn-text { display: none !important; }
   .input-action-btn {
     padding: 8px;
     border-radius: 50%;
@@ -4694,7 +4695,7 @@ body {
 
 .centered-greeting {
   font-family: var(--font-body);
-  font-size: 2.6rem;
+  font-size: 1.85rem;
   font-weight: 600;
   background: linear-gradient(135deg, var(--text) 40%, var(--primary) 100%);
   -webkit-background-clip: text;
