@@ -564,12 +564,15 @@ Attached: ${attachments.map((att) => att.name).join(", ")}`
         selectedModel
       );
       // The assistant message is built via handleStreamEvent as it streams.
-      // We can just ensure the title is updated if needed.
+      // We just need to ensure the title is updated for new chats without overwriting messages
+      // using a functional state update to avoid stale closures.
       if (messages.length === 0) {
-        updateActiveChat(
-          JSON.parse(JSON.stringify(session.chats.find(c => c.id === activeChatId)?.messages || [...updatedMessages, response])),
-          newTitle
-        );
+        setSession((prev) => ({
+          ...prev,
+          chats: prev.chats.map((c) =>
+            c.id === activeChatId ? { ...c, title: newTitle } : c
+          ),
+        }));
       }
     } catch (err) {
       if (err.name === "AbortError" || err.message === "canceled") {
