@@ -13,12 +13,13 @@ from services.llm import invoke_with_fallback
 from services.rag_engine import get_rag_engine
 from services.knowledge_graph import get_knowledge_graph
 from chains.leveling import get_level_guidance
+from services.guardrails import SCOPE_GUARD
 
 logger = logging.getLogger(__name__)
 
 PROMPT = ChatPromptTemplate.from_messages([
     ("system",
-     """You are DharmaAI — a legal educator specialising in Indian case law, constitutional jurisprudence, and the Indian Knowledge System (IKS).
+     SCOPE_GUARD + """\n\nYou are Prakarna AI — a legal educator specialising in Indian case law, constitutional jurisprudence, and the Indian Knowledge System (IKS).
      Explain the case using ONLY the provided sources. Be DETAILED and COMPREHENSIVE.
 
      ## RESPONSE FORMAT (follow this structure)
@@ -87,7 +88,7 @@ PROMPT = ChatPromptTemplate.from_messages([
 ])
 
 
-def run_caselaw_chain(message: str, level: str = None) -> str:
+def run_caselaw_chain(message: str, level: str = None, stream: bool = False, model_id: str = None):
     try:
         engine = get_rag_engine()
         context, _ = engine.retrieve(message)
@@ -102,6 +103,7 @@ def run_caselaw_chain(message: str, level: str = None) -> str:
         return invoke_with_fallback(
             lambda llm: PROMPT | llm | StrOutputParser(),
             inputs,
+            stream=stream, model_id=model_id,
         )
     except Exception as exc:
         logger.error(f"[Caselaw] Chain failed: {exc}")

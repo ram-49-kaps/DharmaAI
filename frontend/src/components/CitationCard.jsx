@@ -35,13 +35,18 @@ export default function CitationCard({ source, onViewSource }) {
             </button>
           )}
           {onViewSource && (
-            <button
-              style={styles.iconBtn}
-              onClick={() => onViewSource(source)}
-              title="View source"
+            <a
+              href={`https://www.google.com/search?q=${encodeURIComponent(
+                source.title + (source.citation ? " " + source.citation.split(/[;,]/)[0].trim() : " Indian law")
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ ...styles.iconBtn, textDecoration: "none" }}
+              title="Search on Google"
+              onClick={(e) => e.stopPropagation()}
             >
               <ExternalLink size={14} />
-            </button>
+            </a>
           )}
         </div>
       </div>

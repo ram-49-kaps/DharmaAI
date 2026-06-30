@@ -1,4 +1,4 @@
-"""Response-depth guidance shared by DharmaAI chains."""
+"""Response-depth guidance shared by Prakarna AI chains."""
 
 from typing import Optional
 

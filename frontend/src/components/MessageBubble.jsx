@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Scale, ScrollText, BookOpen, FileText, User, Copy, Check, ThumbsUp, ThumbsDown, Share2, Pencil, RefreshCw } from "lucide-react";
+import { Scale, ScrollText, BookOpen, FileText, User, Copy, Check, ThumbsUp, ThumbsDown, Share2, Pencil, RefreshCw, SquareTerminal } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import Logo from "./Logo";
 import CitationCard from "./CitationCard";
@@ -16,6 +16,8 @@ const INTENT_LABELS = {
   comparative: { label: "Comparative", color: "var(--intent-general)" },
   follow_up: { label: "Follow-up", color: "var(--intent-general)" },
   general_qa: { label: "General", color: "var(--intent-general)" },
+  document_qa: { label: "Document", color: "var(--intent-general)" },
+  redirect: { label: "Prakarna Scope", color: "var(--intent-general)" },
   // legacy labels
   case_law: { label: "Case Law", color: "var(--intent-caselaw)" },
   statute: { label: "Statute", color: "var(--intent-statute)" },
@@ -187,6 +189,11 @@ export default function MessageBubble({ message, messageIndex, onEditMessage, on
                 )}
               </>
             )
+          ) : message.live_activity && !content ? (
+            <div className="stream-activity-line">
+              <SquareTerminal size={16} />
+              <span>{message.live_activity}</span>
+            </div>
           ) : (
             <ReactMarkdown>{content}</ReactMarkdown>
           )}

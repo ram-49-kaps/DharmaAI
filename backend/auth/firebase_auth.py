@@ -1,5 +1,5 @@
 """
-Firebase ID token verification for DharmaAI.
+Firebase ID token verification for Prakarna AI.
 
 Usage as FastAPI dependency:
     @app.post("/api/chat")

@@ -3,7 +3,7 @@ import { AlertTriangle, Menu, PanelLeft, Share2, Copy, Check, X } from "lucide-r
 import "./App.css";
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import { setAuthToken, sendMessage, shareChat, getThinkingSteps, getSessions, getSessionMessages, deleteSession, getProfile, updateProfile } from "./services/api";
+import { setAuthToken, sendMessage, shareChat, getThinkingSteps } from "./services/api";
 import Login from "./components/Login";
 import SignUp from "./components/SignUp";
 import Sidebar from "./components/Sidebar";
@@ -117,7 +117,7 @@ function AppContent() {
   }, [user, wasAuthGateShown]);
 
   const handleLogout = () => {
-    setSplashText("Signing out of DharmaAI...");
+    setSplashText("Signing out of Prakarna AI...");
     setShowSplash(true);
     setPendingLogout(true);
   };
@@ -204,6 +204,7 @@ function AppContent() {
   const [showUploader, setShowUploader] = useState(false);
   const [toast, setToast] = useState("");
   const [shareModal, setShareModal] = useState(null); // { shareUrl }
+  const [selectedModel, setSelectedModel] = useState("llama-3.3-70b-versatile");
 
   // Default to light mode for first-time users
   const [theme, setTheme] = useState(() => {
@@ -223,74 +224,119 @@ function AppContent() {
   const messages = activeChat.messages;
   const latestSources = [...messages].reverse().find((m) => m.role === "assistant")?.sources || [];
 
-  const profileName = userProfile?.name || user?.displayName || user?.email?.split("@")[0] || "Ram";
+  const getProfileName = () => {
+    try {
+      const profileKey = user ? `dharma-profile-${user.uid}` : "dharma-profile";
+      const savedProfile = JSON.parse(localStorage.getItem(profileKey) || "{}");
+      if (savedProfile.name) return savedProfile.name;
+    } catch { }
+    return user?.displayName || user?.email?.split("@")[0] || "Ram";
+  };
+  const profileName = getProfileName();
 
   const [greetingText, setGreetingText] = useState("");
 
   useEffect(() => {
     if (!profileName) return;
-    const hour = new Date().getHours();
-    const greetings = [];
-    if (hour >= 5 && hour < 12) {
-      greetings.push(`Good morning, ${profileName}!`);
-      greetings.push(`Start your morning research, ${profileName}.`);
-      greetings.push(`What legal queries shall we resolve this morning, ${profileName}?`);
-    } else if (hour >= 12 && hour < 17) {
-      greetings.push(`Good afternoon, ${profileName}!`);
-      greetings.push(`Ready for some afternoon legal research, ${profileName}?`);
-      greetings.push(`How is your research shaping up this afternoon, ${profileName}?`);
-    } else if (hour >= 17 && hour < 22) {
-      greetings.push(`Good evening, ${profileName}!`);
-      greetings.push(`Let's wrap up today's case laws, ${profileName}.`);
-      greetings.push(`What constitutional laws are we checking this evening, ${profileName}?`);
-    } else {
-      greetings.push(`Working late, ${profileName}?`);
-      greetings.push(`Hello, ${profileName}. Burning the midnight oil?`);
-      greetings.push(`Need help with late-night legal analysis, ${profileName}?`);
+    const now = new Date();
+
+    // Cache by time period (morning, afternoon, evening, night)
+    const hour = now.getHours();
+    const timePeriod = hour < 12 ? "morning" : hour < 17 ? "afternoon" : hour < 22 ? "evening" : "night";
+    const dateKey = now.toISOString().slice(0, 10);
+    const cacheKey = user ? `dharma-greeting-${user.uid}-${dateKey}-${timePeriod}` : `dharma-greeting-${dateKey}-${timePeriod}`;
+
+    const fallback = `Welcome back, ${profileName}. What legal topic would you like to explore today?`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      setGreetingText(cached);
+      return;
     }
-    const randomIndex = Math.floor(Math.random() * greetings.length);
-    setGreetingText(greetings[randomIndex]);
-  }, [profileName]);
+
+    // Determine context
+    const isFirstVisit = !localStorage.getItem("dharma-has-visited");
+    if (isFirstVisit) localStorage.setItem("dharma-has-visited", "true");
+
+    const lastGreeting = localStorage.getItem("dharma-last-greeting") || "";
+    const recentTopic = session?.chats?.find(c => c.messages?.length > 0)?.title || "";
+
+    // Format current time (HH:MM) and day of week
+    const currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+    const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' });
+
+    setGreetingText(fallback);
+    getGreeting({
+      first_name: profileName,
+      current_time: currentTime,
+      day_of_week: dayOfWeek,
+      is_first_visit: isFirstVisit,
+      recent_topic: recentTopic,
+      last_greeting: lastGreeting
+    })
+      .then((result) => {
+        const greeting = result?.greeting || fallback;
+        localStorage.setItem(cacheKey, greeting);
+        localStorage.setItem("dharma-last-greeting", greeting);
+        setGreetingText(greeting);
+      })
+      .catch((err) => {
+        console.error("Greeting generation failed:", err);
+      });
+  }, [profileName, user, session?.chats]);
 
   if (loading) {
     return (
       <div className="app-skeleton-layout" data-theme={theme}>
-        {/* Sidebar Skeleton */}
-        <aside className="sidebar">
-          <div className="skeleton-pulse" style={{ height: "36px", marginBottom: "1rem", borderRadius: "8px" }} />
-          <div className="skeleton-pulse" style={{ height: "45px", marginBottom: "1.5rem", borderRadius: "12px" }} />
-          <div className="skeleton-pulse" style={{ height: "36px", marginBottom: "1.5rem", borderRadius: "8px" }} />
-          <div className="sidebar-section">
-            <div className="skeleton-pulse" style={{ width: "60%", height: "14px", marginBottom: "1rem", borderRadius: "4px" }} />
-            <div className="skeleton-pulse" style={{ height: "36px", marginBottom: "0.5rem", borderRadius: "8px" }} />
-            <div className="skeleton-pulse" style={{ height: "36px", marginBottom: "0.5rem", borderRadius: "8px" }} />
-            <div className="skeleton-pulse" style={{ height: "36px", marginBottom: "0.5rem", borderRadius: "8px" }} />
+        <aside className="sidebar skeleton-sidebar">
+          <div className="skeleton-brand-row">
+            <div className="skeleton-logo-wrap"><Logo size={22} className="skeleton-logo" /></div>
+            <div className="skeleton-brand-copy">
+              <span>Prakarna AI</span>
+              <small>Preparing workspace</small>
+            </div>
           </div>
-          <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-            <div className="skeleton-pulse" style={{ height: "36px", borderRadius: "8px" }} />
-            <div className="skeleton-pulse" style={{ height: "36px", borderRadius: "8px" }} />
-            <div className="skeleton-pulse" style={{ height: "50px", borderRadius: "8px" }} />
+          <div className="skeleton-new-chat shimmer" />
+          <div className="skeleton-search shimmer" />
+          <div className="sidebar-section skeleton-nav-list">
+            <div className="skeleton-section-label shimmer" />
+            {[0, 1, 2].map((item) => (
+              <div key={item} className="skeleton-nav-item shimmer" />
+            ))}
+          </div>
+          <div className="skeleton-sidebar-footer">
+            <div className="skeleton-footer-btn shimmer" />
+            <div className="skeleton-footer-btn shimmer" />
+            <div className="skeleton-profile-card shimmer" />
           </div>
         </aside>
 
-        {/* Main Content Area Skeleton */}
-        <main className="main-area">
-          <div className="mobile-header skeleton-pulse" style={{ height: "50px" }} />
-          <div className="chat-window">
+        <main className="main-area skeleton-main">
+          <div className="mobile-header skeleton-mobile-header">
+            <Logo size={20} className="skeleton-logo" />
+            <strong>Prakarna AI</strong>
+          </div>
+          <div className="skeleton-chat-stage">
+            <div className="skeleton-chat-orb">
+              <Logo size={30} className="skeleton-logo" />
+            </div>
+            <div className="skeleton-chat-title">Preparing your legal workspace</div>
+            <div className="skeleton-chat-subtitle">Loading research tools, sources, and your recent context.</div>
             <div className="skeleton-message-list">
-              {[1, 2, 3, 4, 5].map((item) => (
+              {[0, 1, 2, 3].map((item) => (
                 <div key={item} className="skeleton-message-card">
-                  <div className="skeleton-avatar skeleton-pulse" />
+                  <div className="skeleton-avatar">
+                    {item % 2 === 0 ? <Logo size={16} className="skeleton-logo" /> : <span />}
+                  </div>
                   <div className="skeleton-text-lines">
-                    <div className="skeleton-pulse" style={{ width: "85%", height: "12px", borderRadius: "4px" }} />
-                    <div className="skeleton-pulse" style={{ width: "60%", height: "12px", marginTop: "8px", borderRadius: "4px" }} />
+                    <div className="skeleton-line shimmer skeleton-line-long" />
+                    <div className="skeleton-line shimmer skeleton-line-short" />
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          <div style={{ padding: "1.5rem", borderTop: "1px solid var(--border)" }}>
-            <div className="skeleton-pulse" style={{ height: "50px", borderRadius: "12px" }} />
+          <div className="skeleton-input-shell">
+            <div className="skeleton-input shimmer" />
           </div>
         </main>
       </div>
@@ -333,13 +379,108 @@ function AppContent() {
     }
   };
 
+  const handleStreamEvent = (event) => {
+    if (["metadata", "token", "chunk", "status", "activity"].includes(event.type)) {
+      setIsLoadingReply(false);
+    }
+
+    setSession((prev) => {
+      const currentChats = prev.chats;
+      const activeChatIndex = currentChats.findIndex((c) => c.id === prev.activeChatId);
+      if (activeChatIndex === -1) return prev;
+
+      const chat = currentChats[activeChatIndex];
+      const msgs = [...chat.messages];
+
+      if (msgs[msgs.length - 1]?.role !== "assistant") {
+        msgs.push({
+          role: "assistant",
+          content: "",
+          intent: "",
+          sources: [],
+          citations: [],
+          suggested_questions: [],
+          live_activity: "Preparing legal research...",
+          streaming: true,
+        });
+      }
+
+      const lastMsg = { ...msgs[msgs.length - 1] };
+
+      if (event.type === "metadata") {
+        lastMsg.intent = event.data?.intent || "";
+        lastMsg.sources = event.data?.sources || [];
+        lastMsg.response_id = event.data?.response_id;
+        lastMsg.timestamp = event.data?.timestamp;
+        lastMsg.live_activity = event.data?.activity || "Generating response...";
+        lastMsg.streaming = true;
+      } else if (event.type === "token" || event.type === "chunk") {
+        lastMsg.content += event.data || "";
+        lastMsg.live_activity = "";
+        lastMsg.streaming = true;
+      } else if (event.type === "citations") {
+        lastMsg.citations = event.data || [];
+      } else if (event.type === "suggestions") {
+        lastMsg.suggested_questions = event.data || [];
+      } else if (event.type === "done") {
+        lastMsg.streaming = false;
+        lastMsg.live_activity = "";
+      } else if (event.type === "status" || event.type === "activity") {
+        lastMsg.live_activity = event.data || "";
+      } else if (event.type === "info") {
+        if (event.data?.type === "fallback") {
+          setToast(`⚡ Switched to ${event.data.model} due to rate limits`);
+          setTimeout(() => setToast(""), 4000);
+        }
+      }
+
+      msgs[msgs.length - 1] = lastMsg;
+
+      const newChats = [...currentChats];
+      newChats[activeChatIndex] = { ...chat, messages: msgs };
+
+      return { ...prev, chats: newChats };
+    });
+  };
+
+  const appendAssistantError = (errText) => {
+    setSession((prev) => {
+      const currentChats = prev.chats;
+      const activeChatIndex = currentChats.findIndex((c) => c.id === prev.activeChatId);
+      if (activeChatIndex === -1) return prev;
+
+      const chat = currentChats[activeChatIndex];
+      const msgs = [...chat.messages];
+
+      if (msgs[msgs.length - 1]?.role !== "assistant") {
+        msgs.push({
+          role: "assistant",
+          content: "",
+          intent: "",
+          sources: [],
+          citations: [],
+          suggested_questions: [],
+        });
+      }
+
+      const lastMsg = { ...msgs[msgs.length - 1] };
+      lastMsg.content = (lastMsg.content ? lastMsg.content + "\n\n" : "") + `**Error:** ${errText}`;
+      lastMsg.streaming = false;
+      lastMsg.live_activity = "";
+      msgs[msgs.length - 1] = lastMsg;
+
+      const newChats = [...currentChats];
+      newChats[activeChatIndex] = { ...chat, messages: msgs };
+      return { ...prev, chats: newChats };
+    });
+  };
+
   const handleSend = async (text, attachments = []) => {
     if (isLoadingReply) {
       handleStop();
       return;
     }
 
-    // Process attachments to generate persistent Base64 previews for images
     const processedAttachments = [];
     for (const att of attachments) {
       let previewData = att.preview;
@@ -364,7 +505,9 @@ function AppContent() {
     }
 
     const attachmentLabel = attachments.length
-      ? `\n\nAttached: ${attachments.map((att) => att.name).join(", ")}`
+      ? `
+
+Attached: ${attachments.map((att) => att.name).join(", ")}`
       : "";
     const displayText = `${text}${attachmentLabel}`.trim() || "Attached files";
     const userMsg = {
@@ -380,6 +523,7 @@ function AppContent() {
     }
 
     updateActiveChat(updatedMessages, newTitle);
+
     setIsLoadingReply(true);
     setThinkingSteps(DEFAULT_THINKING_STEPS);
     getThinkingSteps(text || "Analyzing attached files")
@@ -388,9 +532,7 @@ function AppContent() {
           setThinkingSteps(steps);
         }
       })
-      .catch((err) => {
-        console.error("Thinking steps fetch failed:", err);
-      });
+      .catch((err) => console.error("Thinking steps fetch failed:", err));
     setError("");
     setActivePanel("chat");
 
@@ -403,13 +545,20 @@ function AppContent() {
     }));
 
     try {
+      let savedProfile = {};
+      try {
+        const profileKey = user ? `dharma-profile-${user.uid}` : "dharma-profile";
+        savedProfile = JSON.parse(localStorage.getItem(profileKey) || "{}");
+      } catch {
+        savedProfile = {};
+      }
       const response = await sendMessage(
         text,
         history,
         activeChatId,
         controller.signal,
         attachments,
-        userProfile?.level || null
+        savedProfile.level || null
       );
       updateActiveChat(
         [
@@ -430,14 +579,9 @@ function AppContent() {
         console.log("Request aborted");
         return;
       }
-      const errText =
-        err?.response?.data?.detail ||
-        "Backend error. Is your FastAPI server running on port 8000?";
+      const errText = err.message || "Backend error. Is your FastAPI server running on port 8000?";
       setError(errText);
-      updateActiveChat(
-        [...updatedMessages, { role: "assistant", content: errText, intent: "general_qa", sources: [] }],
-        newTitle
-      );
+      appendAssistantError(errText);
     } finally {
       setIsLoadingReply(false);
       setAbortController(null);
@@ -447,13 +591,14 @@ function AppContent() {
   // ── Edit message (ChatGPT-style: truncate + regenerate) ────────────────────
 
   const handleEditMessage = async (index, newContent) => {
-    // Truncate to the edited message, replace its content, then re-send
     const truncated = messages.slice(0, index);
     const originalMsg = messages[index];
     const originalAttachments = originalMsg?.attachments || [];
 
     const attachmentLabel = originalAttachments.length
-      ? `\n\nAttached: ${originalAttachments.map((att) => att.name).join(", ")}`
+      ? `
+
+Attached: ${originalAttachments.map((att) => att.name).join(", ")}`
       : "";
     const fullContent = `${newContent}${attachmentLabel}`.trim();
 
@@ -470,6 +615,7 @@ function AppContent() {
     }
 
     updateActiveChat(updatedMessages, newTitle);
+
     setIsLoadingReply(true);
     setThinkingSteps(DEFAULT_THINKING_STEPS);
     getThinkingSteps(newContent || "Regenerating response")
@@ -478,10 +624,9 @@ function AppContent() {
           setThinkingSteps(steps);
         }
       })
-      .catch((err) => {
-        console.error("Thinking steps fetch failed:", err);
-      });
+      .catch((err) => console.error("Thinking steps fetch failed:", err));
     setError("");
+    setActivePanel("chat");
 
     const controller = new AbortController();
     setAbortController(controller);
@@ -492,13 +637,20 @@ function AppContent() {
     }));
 
     try {
+      let savedProfile = {};
+      try {
+        const profileKey = user ? `dharma-profile-${user.uid}` : "dharma-profile";
+        savedProfile = JSON.parse(localStorage.getItem(profileKey) || "{}");
+      } catch {
+        savedProfile = {};
+      }
       const response = await sendMessage(
         newContent,
         history,
         activeChatId,
         controller.signal,
         [],
-        userProfile?.level || null
+        savedProfile.level || null
       );
       updateActiveChat(
         [
@@ -515,13 +667,13 @@ function AppContent() {
         newTitle
       );
     } catch (err) {
-      if (err.name === "AbortError" || err.message === "canceled") return;
-      const errText = err?.response?.data?.detail || "Failed to regenerate response.";
+      if (err.name === "AbortError" || err.message === "canceled") {
+        console.log("Request aborted");
+        return;
+      }
+      const errText = err.message || "Backend error. Is your FastAPI server running on port 8000?";
       setError(errText);
-      updateActiveChat(
-        [...updatedMessages, { role: "assistant", content: errText, intent: "general_qa", sources: [] }],
-        newTitle
-      );
+      appendAssistantError(errText);
     } finally {
       setIsLoadingReply(false);
       setAbortController(null);
@@ -594,7 +746,7 @@ function AppContent() {
   };
 
   const deleteChat = (id) => {
-    deleteSession(id).catch(() => {});
+    deleteSession(id).catch(() => { });
     setSession((prev) => {
       const updated = prev.chats.filter((c) => c.id !== id);
       let newActiveId = prev.activeChatId;
@@ -683,7 +835,7 @@ function AppContent() {
           </button>
           <div className="mobile-header-brand">
             <Logo size={20} />
-            <strong>DharmaAI</strong>
+            <strong>Prakarna AI</strong>
           </div>
         </div>
 
@@ -701,6 +853,8 @@ function AppContent() {
                   onPrefillUsed={() => setPrefillText("")}
                   messages={messages}
                   onCompactContext={handleNewChat}
+                  selectedModel={selectedModel}
+                  onModelChange={setSelectedModel}
                 />
               </div>
             </div>
@@ -730,6 +884,8 @@ function AppContent() {
                 onPrefillUsed={() => setPrefillText("")}
                 messages={messages}
                 onCompactContext={handleNewChat}
+                selectedModel={selectedModel}
+                onModelChange={setSelectedModel}
               />
             </>
           )

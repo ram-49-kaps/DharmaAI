@@ -29,7 +29,7 @@ function ThinkingAnimation({ thinkingSteps }) {
   return (
     <div className="thinking-animation">
       <div className="thinking-icon">
-        <Logo size={22} />
+        <Logo size={22} className="thinking-logo" />
       </div>
       <div className="thinking-content">
         <div className="thinking-header">
@@ -46,18 +46,40 @@ function ThinkingAnimation({ thinkingSteps }) {
 }
 
 export default function ChatWindow({ messages, loading, onFeatureClick, userName, onEditMessage, onShareChat, sessionId, onRegenerate, onSendSuggested, thinkingSteps }) {
+  const windowRef = useRef(null);
   const bottomRef = useRef(null);
+  const shouldStickToBottomRef = useRef(true);
+  const previousMessageCountRef = useRef(messages.length);
+
+  const scrollToBottom = (behavior = "smooth") => {
+    bottomRef.current?.scrollIntoView({ behavior, block: "end" });
+  };
+
+  const updateStickiness = () => {
+    const el = windowRef.current;
+    if (!el) return;
+
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    shouldStickToBottomRef.current = distanceFromBottom < 120;
+  };
 
   useEffect(() => {
-    if (messages.length > 0 || loading) {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const messageCountChanged = messages.length !== previousMessageCountRef.current;
+    previousMessageCountRef.current = messages.length;
+
+    if (messageCountChanged) {
+      shouldStickToBottomRef.current = true;
+    }
+
+    if ((messages.length > 0 || loading) && shouldStickToBottomRef.current) {
+      scrollToBottom(messageCountChanged ? "smooth" : "auto");
     }
   }, [messages, loading]);
 
-  const greeting = userName ? `Welcome, ${userName}` : "Welcome to DharmaAI";
+  const greeting = userName ? `Welcome, ${userName}` : "Welcome to Prakarna AI";
 
   return (
-    <div className="chat-window">
+    <div className="chat-window" ref={windowRef} onScroll={updateStickiness}>
       {messages.length === 0 ? (
         <div className="welcome">
           <div className="welcome-brand"><Logo size={48} /></div>
@@ -113,4 +135,3 @@ export default function ChatWindow({ messages, loading, onFeatureClick, userName
     </div>
   );
 }
-

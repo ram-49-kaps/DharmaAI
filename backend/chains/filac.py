@@ -14,10 +14,11 @@ from services.llm import invoke_with_fallback
 from services.rag_engine import get_rag_engine
 from services.knowledge_graph import get_knowledge_graph
 from chains.leveling import get_level_guidance
+from services.guardrails import SCOPE_GUARD
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You are DharmaAI — an expert legal reasoning tutor. Apply the FILAC method to analyse the legal problem.
+SYSTEM_PROMPT = """You are Prakarna AI — an expert legal reasoning tutor. Apply the FILAC method to analyse the legal problem.
 FILAC = Facts, Issues, Law, Analysis, Conclusion.
 
 ## CRITICAL RULES
@@ -81,12 +82,12 @@ State the likely legal outcome:
 Provide a complete, detailed, comprehensive FILAC analysis. Each section should be substantial and educational."""
 
 PROMPT = ChatPromptTemplate.from_messages([
-    ("system", SYSTEM_PROMPT),
+    ("system", SCOPE_GUARD + "\n\n" + SYSTEM_PROMPT),
     ("human", "Apply FILAC (Facts, Issues, Law, Analysis, Conclusion) to this legal scenario: {message}")
 ])
 
 
-def run_filac_chain(message: str, level: str = None) -> str:
+def run_filac_chain(message: str, level: str = None, stream: bool = False, model_id: str = None):
     """
     FILAC analysis using RAG-retrieved sources only.
     Cites only from retrieved context — no hallucination.
@@ -107,6 +108,7 @@ def run_filac_chain(message: str, level: str = None) -> str:
         return invoke_with_fallback(
             lambda llm: PROMPT | llm | StrOutputParser(),
             inputs,
+            stream=stream, model_id=model_id,
         )
     except Exception as exc:
         logger.error(f"[FILAC] Chain failed: {exc}")

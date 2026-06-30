@@ -42,7 +42,7 @@ export default function SourceViewer({ source, onClose }) {
 
         <div style={styles.footer}>
           <p style={styles.disclaimer}>
-            Source retrieved from DharmaAI knowledge base.
+            Source retrieved from Prakarna AI knowledge base.
             For authoritative text, consult the original publication.
           </p>
         </div>

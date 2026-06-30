@@ -1,6 +1,7 @@
 import React from "react";
 import { Plus, MessageSquare, Library, BrainCircuit, Pencil, Trash2, Download, X, Check, X as XIcon, Upload, LogOut, User, Sun, Moon, PanelLeftClose, Search, Sparkles } from "lucide-react";
 import Logo from "./Logo";
+import BrandText from "./BrandText";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function Sidebar({
@@ -27,6 +28,10 @@ export default function Sidebar({
   const [editingChatId, setEditingChatId] = React.useState(null);
   const [editTitle, setEditTitle] = React.useState("");
   const [deleteConfirmId, setDeleteConfirmId] = React.useState(null);
+  const deleteTarget = React.useMemo(
+    () => chats.find((chat) => chat.id === deleteConfirmId),
+    [chats, deleteConfirmId]
+  );
   const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
 
@@ -52,7 +57,7 @@ export default function Sidebar({
   };
 
   const confirmDelete = (e, chatId) => {
-    e.stopPropagation();
+    e?.stopPropagation();
     onDeleteChat(chatId);
     setDeleteConfirmId(null);
   };
@@ -63,8 +68,9 @@ export default function Sidebar({
   return (
     <aside className={`sidebar ${isOpen ? "open" : ""}`}>
       {/* Logo */}
-      <div className="sidebar-logo">
-        <div className="logo-icon"><Logo size={18} /></div>
+      <div className="sidebar-logo" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div className="logo-icon" style={{ display: "flex" }}><Logo size={24} variant="minimal" /></div>
+        <BrandText style={{ fontSize: "1.1rem" }} />
         <div className="tooltip-wrap" style={{ marginLeft: "auto" }}>
           <button className="sidebar-collapse-btn" onClick={onToggleCollapse}>
             <PanelLeftClose size={18} />
@@ -139,23 +145,14 @@ export default function Sidebar({
                 <span className="history-title">{chat.title}</span>
               )}
               <div className="chat-actions">
-                {isDeleting ? (
-                  <>
-                    <button className="chat-action-btn confirm-del" onClick={(e) => confirmDelete(e, chat.id)}><Check size={14} color="var(--danger)" /></button>
-                    <button className="chat-action-btn" onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(null); }}><XIcon size={14} /></button>
-                  </>
-                ) : (
-                  <>
-                    <div className="tooltip-wrap">
-                      <button className="chat-action-btn" onClick={(e) => startRename(e, chat)}><Pencil size={14} /></button>
-                      <div className="tooltip-content" style={{ fontSize: "0.75rem", padding: "4px 8px" }}>Rename</div>
-                    </div>
-                    <div className="tooltip-wrap">
-                      <button className="chat-action-btn" onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(chat.id); setEditingChatId(null); }}><Trash2 size={14} /></button>
-                      <div className="tooltip-content" style={{ fontSize: "0.75rem", padding: "4px 8px" }}>Delete</div>
-                    </div>
-                  </>
-                )}
+                <div className="tooltip-wrap">
+                  <button className="chat-action-btn" onClick={(e) => startRename(e, chat)}><Pencil size={14} /></button>
+                  <div className="tooltip-content" style={{ fontSize: "0.75rem", padding: "4px 8px" }}>Rename</div>
+                </div>
+                <div className="tooltip-wrap">
+                  <button className="chat-action-btn" onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(chat.id); setEditingChatId(null); }}><Trash2 size={14} /></button>
+                  <div className="tooltip-content" style={{ fontSize: "0.75rem", padding: "4px 8px" }}>Delete</div>
+                </div>
               </div>
             </div>
           );
@@ -213,7 +210,7 @@ export default function Sidebar({
             <div className="logout-modal" onClick={(e) => e.stopPropagation()}>
               <div className="logout-modal-icon"><LogOut size={24} color="#B45309" /></div>
               <h3 className="logout-modal-title">Sign Out</h3>
-              <p className="logout-modal-text">Are you sure you want to sign out of DharmaAI?</p>
+              <p className="logout-modal-text">Are you sure you want to sign out of Prakarna AI?</p>
               <div className="logout-modal-actions">
                 <button className="logout-cancel-btn" onClick={() => setShowLogoutConfirm(false)}>Cancel</button>
                 <button className="logout-confirm-btn" onClick={() => { setShowLogoutConfirm(false); onLogout(); }}>Sign Out</button>
@@ -222,17 +219,33 @@ export default function Sidebar({
           </div>
         )}
 
+        {deleteTarget && (
+          <div className="logout-overlay" onClick={() => setDeleteConfirmId(null)}>
+            <div className="logout-modal delete-chat-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="logout-modal-icon delete-modal-icon"><Trash2 size={24} color="#B45309" /></div>
+              <h3 className="logout-modal-title">Delete Chat?</h3>
+              <p className="logout-modal-text">
+                Are you sure you want to delete <strong>{deleteTarget.title}</strong>? This cannot be undone.
+              </p>
+              <div className="logout-modal-actions">
+                <button className="logout-cancel-btn" onClick={() => setDeleteConfirmId(null)}>Cancel</button>
+                <button className="logout-confirm-btn delete-confirm-btn" onClick={(e) => confirmDelete(e, deleteTarget.id)}>Delete</button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Developer Credits */}
         <div style={{
           textAlign: "center",
-          fontSize: "0.7rem",
-          color: "var(--text-muted)",
+          fontSize: "0.75rem",
+          color: "var(--text)",
           marginTop: "0.8rem",
           paddingTop: "0.8rem",
           borderTop: "1px dashed var(--border)",
-          opacity: 0.8
+          fontWeight: 500
         }}>
-          Created by <strong>Ram Kapadia</strong>, <strong>Arnav Narula</strong> & <strong>Saanvi Aggarwal</strong>
+          Created by <span style={{ color: "var(--primary)", fontWeight: 700 }}>Ram Kapadia</span>, <span style={{ color: "var(--primary)", fontWeight: 700 }}>Arnav Narula</span> & <span style={{ color: "var(--primary)", fontWeight: 700 }}>Saanvi Aggarwal</span>
         </div>
       </div>
     </aside>

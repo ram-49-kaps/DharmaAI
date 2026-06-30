@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Scale, ScrollText, BookOpen, BrainCircuit, Flower2, FileText, ArrowRight, ChevronRight, Sparkles, Shield, Users, Zap, Play } from "lucide-react";
 import Logo from "./Logo";
+import BrandText from "./BrandText";
 
 export default function HomePage({ onGetStarted, onLogin }) {
   const [scrolled, setScrolled] = useState(false);
@@ -68,11 +69,11 @@ export default function HomePage({ onGetStarted, onLogin }) {
     <div className="landing-page">
       {/* ── Navbar ──────────────────────────────────────────────── */}
       <nav className={`landing-nav ${scrolled ? "scrolled" : ""}`}>
-        <div className="nav-brand">
-          <div className="nav-brand-icon">
-            <Logo size={24} />
+        <div className="nav-brand" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="nav-brand-icon" style={{ display: 'flex', alignItems: 'center' }}>
+            <Logo size={36} variant="minimal" />
           </div>
-          <span className="nav-brand-text">DharmaAI</span>
+          <BrandText style={{ fontSize: '1.25rem', paddingTop: '4px' }} />
         </div>
 
         <ul className="nav-links">
@@ -107,7 +108,7 @@ export default function HomePage({ onGetStarted, onLogin }) {
           </h1>
           <p className="hero-subtitle">
             Grounded in the Indian Knowledge System and modern jurisprudence.
-            DharmaAI combines ancient wisdom with cutting-edge AI to deliver
+            Prakarna AI combines ancient wisdom with cutting-edge AI to deliver
             comprehensive legal analysis, case law research, and structured
             reasoning frameworks.
           </p>
@@ -150,7 +151,7 @@ export default function HomePage({ onGetStarted, onLogin }) {
             Everything You Need for Legal Research
           </h2>
           <p className="section-subtitle" style={{ margin: "0.75rem auto 0" }}>
-            From case law analysis to ancient Dharmic wisdom — DharmaAI provides
+            From case law analysis to ancient Dharmic wisdom — Prakarna AI provides
             a comprehensive toolkit for legal scholars, students, and practitioners.
           </p>
         </div>
@@ -232,10 +233,10 @@ export default function HomePage({ onGetStarted, onLogin }) {
               <Play size={16} /> See It In Action
             </div>
             <h2 className="section-title" style={{ maxWidth: 600, margin: "0 auto" }}>
-              Watch DharmaAI Analyze a Legal Query
+              Watch Prakarna AI Analyze a Legal Query
             </h2>
             <p className="section-subtitle" style={{ margin: "0.75rem auto 0" }}>
-              Ask any legal question and watch DharmaAI retrieve from case law,
+              Ask any legal question and watch Prakarna AI retrieve from case law,
               statutes, and IKS texts to build a comprehensive, well-cited answer.
             </p>
           </div>
@@ -246,7 +247,7 @@ export default function HomePage({ onGetStarted, onLogin }) {
               <div className="demo-sidebar-mock">
                 <div className="demo-sidebar-logo">
                   <div className="demo-sidebar-logo-icon" />
-                  <span className="demo-sidebar-logo-text">DharmaAI</span>
+                  <span className="demo-sidebar-logo-text">Prakarna AI</span>
                 </div>
                 <div className="demo-sidebar-btn">+ New Chat</div>
                 <div className="demo-sidebar-item">💬 Right to Privacy...</div>
@@ -324,7 +325,7 @@ export default function HomePage({ onGetStarted, onLogin }) {
       {/* ── Editorial Quote Section (Spots-inspired) ────────────── */}
       <section className="editorial-section" ref={editorialRef}>
         <div className="editorial-inner">
-          <div className="editorial-label">Why DharmaAI</div>
+          <div className="editorial-label">Why Prakarna AI</div>
 
           <p className={`editorial-text ${editorialVisible ? "visible" : ""}`}>
             Legal research is more accessible than ever. But depth is rarer.
@@ -343,7 +344,7 @@ export default function HomePage({ onGetStarted, onLogin }) {
           </p>
 
           <p className={`editorial-signature ${editorialVisible ? "visible" : ""}`}>
-            Welcome to <em>DharmaAI.</em>
+            Welcome to <em>Prakarna AI.</em>
           </p>
         </div>
       </section>
@@ -356,7 +357,7 @@ export default function HomePage({ onGetStarted, onLogin }) {
               <Zap size={16} /> Simple & Powerful
             </div>
             <h2 className="section-title" style={{ maxWidth: 500, margin: "0 auto" }}>
-              How DharmaAI Works
+              How Prakarna AI Works
             </h2>
             <p className="section-subtitle" style={{ margin: "0.75rem auto 0" }}>
               From question to comprehensive legal analysis in seconds.
@@ -377,7 +378,7 @@ export default function HomePage({ onGetStarted, onLogin }) {
               <div className="step-number">2</div>
               <div className="step-title">AI Analyzes & Retrieves</div>
               <div className="step-desc">
-                DharmaAI searches through case law, statutes, IKS texts, and
+                Prakarna AI searches through case law, statutes, IKS texts, and
                 its knowledge graph to build a comprehensive answer.
               </div>
             </div>
@@ -404,7 +405,7 @@ export default function HomePage({ onGetStarted, onLogin }) {
             Where Ancient Wisdom Meets Modern Law
           </h2>
           <p className="section-subtitle" style={{ margin: "0.75rem auto 0" }}>
-            DharmaAI is the first legal AI platform that integrates the Indian
+            Prakarna AI is the first legal AI platform that integrates the Indian
             Knowledge System (IKS) with contemporary Indian jurisprudence.
             Our RAG-powered engine retrieves from a curated knowledge base of
             case law, statutes, glossaries, and ancient texts to provide
@@ -421,7 +422,7 @@ export default function HomePage({ onGetStarted, onLogin }) {
           </h2>
           <p className="cta-subtitle">
             Join law students, academicians, and practitioners who are already
-            using DharmaAI to accelerate their legal research and analysis.
+            using Prakarna AI to accelerate their legal research and analysis.
           </p>
           <button className="hero-btn-primary" onClick={onGetStarted}>
             Get Started for Free <ArrowRight size={18} />
@@ -434,7 +435,7 @@ export default function HomePage({ onGetStarted, onLogin }) {
         <div className="footer-inner">
           <div className="footer-brand">
             <Logo size={18} color="rgba(255,255,255,0.4)" />
-            <span>© {new Date().getFullYear()} DharmaAI. All rights reserved.</span>
+            <span>© {new Date().getFullYear()} Prakarna AI. All rights reserved.</span>
           </div>
           <div className="footer-links">
             <a href="#features">Features</a>

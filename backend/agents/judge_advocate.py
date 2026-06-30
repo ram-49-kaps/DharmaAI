@@ -1,5 +1,5 @@
 """
-Judge-Advocate Agent — DharmaAI v2
+Judge-Advocate Agent — Prakarna AI v2
 ────────────────────────────────────
 LangGraph-based verification agent that ensures answer quality.
 

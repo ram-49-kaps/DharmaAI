@@ -1,0 +1,10 @@
+/* Logo Animation */
+@keyframes breathing-intelligence {
+  0% { transform: scale(3.2); filter: drop-shadow(0 0 2px rgba(180, 83, 9, 0.2)); }
+  50% { transform: scale(3.4); filter: drop-shadow(0 0 8px rgba(180, 83, 9, 0.6)); }
+  100% { transform: scale(3.2); filter: drop-shadow(0 0 2px rgba(180, 83, 9, 0.2)); }
+}
+
+.logo-thinking {
+  animation: breathing-intelligence 2.5s infinite ease-in-out;
+}

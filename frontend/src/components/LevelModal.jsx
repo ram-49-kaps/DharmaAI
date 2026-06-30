@@ -53,7 +53,7 @@ export default function LevelModal({ onSave }) {
           </div>
           <h2 className="level-modal-title">Personalize Your Experience</h2>
           <p className="level-modal-subtitle">
-            Select your expertise level to tailor DharmaAI's reasoning depth and vocabulary.
+            Select your expertise level to tailor Prakarna AI's reasoning depth and vocabulary.
           </p>
         </div>
         

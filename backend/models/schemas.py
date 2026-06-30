@@ -12,9 +12,21 @@ class ChatRequest(BaseModel):
     history: List[Message] = []
     session_id: Optional[str] = None
     level: Optional[str] = None  # "beginner" | "intermediate" | "advanced" | "practitioner"
+    model_id: Optional[str] = None
 
 class ThinkingRequest(BaseModel):
     query: str
+
+class GreetingRequest(BaseModel):
+    first_name: str = ""
+    current_time: str = ""
+    day_of_week: str = ""
+    is_first_visit: bool = False
+    recent_topic: str = ""
+    last_greeting: str = ""
+
+class GreetingResponse(BaseModel):
+    greeting: str
 
 class Citation(BaseModel):
     """Structured citation with full source information."""
@@ -127,4 +139,3 @@ class ShareChatRequest(BaseModel):
 class ShareChatResponse(BaseModel):
     share_id: str
     share_url: str
-

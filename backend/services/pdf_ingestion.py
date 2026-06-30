@@ -1,5 +1,5 @@
 """
-PDF ingestion pipeline for DharmaAI v2.
+PDF ingestion pipeline for Prakarna AI v2.
 
 Extracts text with page numbers using pdfplumber,
 chunks at section boundaries, and stores in ChromaDB.

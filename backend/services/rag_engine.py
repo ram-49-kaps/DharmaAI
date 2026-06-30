@@ -1,5 +1,5 @@
 """
-RAG-first retrieval engine for DharmaAI v2.
+RAG-first retrieval engine for Prakarna AI v2.
 
 Every query goes through this engine before reaching the LLM.
 Uses Gemini text-embedding-004 for embeddings and ChromaDB for storage.

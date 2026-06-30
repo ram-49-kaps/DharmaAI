@@ -1,1 +1,1 @@
-"""LangGraph agents for DharmaAI."""
+"""LangGraph agents for Prakarna AI."""

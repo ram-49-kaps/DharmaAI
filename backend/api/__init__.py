@@ -1,1 +1,1 @@
-"""API route modules for DharmaAI."""
+"""API route modules for Prakarna AI."""

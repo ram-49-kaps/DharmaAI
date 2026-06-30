@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import MessageBubble from "./MessageBubble";
 import Logo from "./Logo";
+import BrandText from "./BrandText";
 import { getSharedChat } from "../services/api";
 
 export default function SharedChatView({ shareId }) {
@@ -38,11 +39,11 @@ export default function SharedChatView({ shareId }) {
     return (
       <div className="shared-chat-page" data-theme="light">
         <div className="shared-chat-header">
-          <div className="shared-chat-brand">
-            <Logo size={24} />
-            <h2>DharmaAI</h2>
+          <div className="shared-chat-brand" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <Logo size={28} variant="minimal" />
+            <BrandText style={{ fontSize: "1.25rem" }} />
           </div>
-          <a href="/" className="shared-chat-cta">Open DharmaAI</a>
+          <a href="/" className="shared-chat-cta">Open Prakarna AI</a>
         </div>
         <div style={{ margin: "auto", textAlign: "center", color: "var(--text-secondary)", padding: "2rem" }}>
           <p style={{ fontSize: "1.1rem", fontWeight: 600 }}>{error || "Chat not found"}</p>
@@ -54,11 +55,11 @@ export default function SharedChatView({ shareId }) {
   return (
     <div className="shared-chat-page" data-theme="light">
       <div className="shared-chat-header">
-        <div className="shared-chat-brand">
-          <Logo size={24} />
-          <h2>DharmaAI</h2>
+        <div className="shared-chat-brand" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <Logo size={28} variant="minimal" />
+          <BrandText style={{ fontSize: "1.25rem" }} />
         </div>
-        <a href="/" className="shared-chat-cta">Continue in DharmaAI</a>
+        <a href="/" className="shared-chat-cta">Continue in Prakarna AI</a>
       </div>
 
       <div className="shared-chat-body">
@@ -68,7 +69,7 @@ export default function SharedChatView({ shareId }) {
       </div>
 
       <div className="shared-chat-footer">
-        Shared from DharmaAI — AI-powered Indian legal research &bull; {chat.created_at ? new Date(chat.created_at).toLocaleDateString() : ""}
+        Shared from Prakarna AI — AI-powered Indian legal research &bull; {chat.created_at ? new Date(chat.created_at).toLocaleDateString() : ""}
       </div>
     </div>
   );

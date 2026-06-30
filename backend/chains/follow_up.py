@@ -14,6 +14,7 @@ from langchain_core.output_parsers import StrOutputParser
 from services.llm import invoke_with_fallback
 from services.rag_engine import get_rag_engine
 from services.knowledge_graph import get_knowledge_graph
+from services.guardrails import SCOPE_GUARD
 from chains.leveling import get_level_guidance
 
 logger = logging.getLogger(__name__)
@@ -32,7 +33,9 @@ def is_follow_up(message: str) -> bool:
     return any(indicator in msg_lower for indicator in FOLLOW_UP_INDICATORS)
 
 
-SYSTEM_PROMPT = """You are DharmaAI, continuing a legal consultation.
+SYSTEM_PROMPT = SCOPE_GUARD + """
+
+You are Prakarna AI, continuing a legal consultation.
 
 The user is asking a follow-up question or requesting elaboration on the previous exchange.
 
@@ -64,7 +67,7 @@ PROMPT = ChatPromptTemplate.from_messages([
 ])
 
 
-def run_follow_up_chain(message: str, history: List[dict], level: str = None) -> str:
+def run_follow_up_chain(message: str, history: List[dict], level: str = None, stream: bool = False, model_id: str = None):
     """
     Handles follow-up/continuation queries with topic continuity.
     Uses last 3 exchanges + retrieval for context.
@@ -74,7 +77,7 @@ def run_follow_up_chain(message: str, history: List[dict], level: str = None) ->
         recent = history
         history_parts = []
         for msg in recent:
-            role = "User" if msg.get("role") == "user" else "DharmaAI"
+            role = "User" if msg.get("role") == "user" else "Prakarna AI"
             content = msg.get("content", "")[:2000]
             history_parts.append(f"**{role}**: {content}")
         history_text = "\n\n".join(history_parts) if history_parts else "No previous conversation."
@@ -102,6 +105,7 @@ def run_follow_up_chain(message: str, history: List[dict], level: str = None) ->
         return invoke_with_fallback(
             lambda llm: PROMPT | llm | StrOutputParser(),
             inputs,
+            stream=stream, model_id=model_id,
         )
     except Exception as exc:
         logger.error(f"[FollowUp] Chain failed: {exc}")

@@ -1,5 +1,5 @@
 """
-Conversational chain handler for DharmaAI v2.
+Conversational chain handler for Prakarna AI v2.
 
 Handles simple greetings and small talk without invoking the heavy RAG retrieval pipeline.
 """
@@ -9,10 +9,13 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
 from services.llm import invoke_with_fallback
+from services.guardrails import SCOPE_GUARD
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You are DharmaAI, an expert educational legal assistant specialising in Indian jurisprudence, constitutional law, and the Indian Knowledge System (IKS).
+SYSTEM_PROMPT = SCOPE_GUARD + """
+
+You are Prakarna AI, an expert educational legal assistant specialising in Indian jurisprudence, constitutional law, and the Indian Knowledge System (IKS).
 
 The user is currently just making small talk or greeting you. 
 Respond in a friendly, conversational, and polite manner. 
@@ -25,7 +28,7 @@ PROMPT = ChatPromptTemplate.from_messages([
     ("human", "{message}")
 ])
 
-def run_conversational_chain(message: str) -> str:
+def run_conversational_chain(message: str, stream: bool = False, model_id: str = None):
     """
     Handle small talk and greetings quickly.
     Bypasses RAG retrieval to save time and tokens.
@@ -35,7 +38,8 @@ def run_conversational_chain(message: str) -> str:
         return invoke_with_fallback(
             lambda llm: PROMPT | llm | StrOutputParser(),
             inputs,
+            stream=stream, model_id=model_id,
         )
     except Exception as exc:
         logger.error(f"[Conversational] Chain failed: {exc}")
-        return "Hello! I am DharmaAI. How can I assist you with your legal research or analysis today?"
+        return "Hello! I am Prakarna AI. How can I assist you with your legal research or analysis today?"

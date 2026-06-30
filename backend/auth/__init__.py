@@ -1,1 +1,1 @@
-"""Firebase authentication module for DharmaAI backend."""
+"""Firebase authentication module for Prakarna AI backend."""

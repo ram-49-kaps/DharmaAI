@@ -1,5 +1,5 @@
 """
-Intent router for DharmaAI v2.
+Intent router for Prakarna AI v2.
 
 DEFAULT intent is general_qa — NOT legal_reasoning.
 Only routes to irac_analysis or idar_analysis when user EXPLICITLY requests it.

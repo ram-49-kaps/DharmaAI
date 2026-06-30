@@ -1,5 +1,5 @@
-import React, { useState, useRef } from "react";
-import { Square, Paperclip, X, FileText, Image, Send } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { Square, Paperclip, X, FileText, Image, Send, ChevronDown, Check, Mic } from "lucide-react";
 
 const QUICK_PROMPTS = [
   "What is Dharma in Indian law?",
@@ -7,15 +7,100 @@ const QUICK_PROMPTS = [
   "What does Article 21 say?",
 ];
 
-export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, messages = [], onCompactContext }) {
+const MODELS = [
+  { id: "llama-3.3-70b-versatile", name: "Llama 3.3 70B", desc: "Deep reasoning" },
+  { id: "llama-3.1-8b-instant", name: "Llama 3.1 8B", desc: "Fastest answers" },
+  { id: "gemma2-9b-it", name: "Gemma 2 9B", desc: "Alternative fallback" },
+];
+
+export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, messages = [], onCompactContext, selectedModel, onModelChange }) {
   const [text, setText] = useState("");
   const [showContext, setShowContext] = useState(false);
+  const [showModelMenu, setShowModelMenu] = useState(false);
   const [attachments, setAttachments] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const dragCounter = useRef(0);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
+  const modelMenuRef = useRef(null);
+  const [isListening, setIsListening] = useState(false);
+  const [interimText, setInterimText] = useState("");
+  const recognitionRef = useRef(null);
 
+  // Setup Speech Recognition
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = true;
+      recognitionRef.current.interimResults = true;
+      
+      recognitionRef.current.onresult = (event) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+        
+        setInterimText(interimTranscript);
+        
+        if (finalTranscript) {
+          setText(prev => {
+            const newText = prev + (prev.endsWith(' ') || prev.length === 0 ? '' : ' ') + finalTranscript;
+            return newText;
+          });
+        }
+        
+        // Auto resize textarea
+        if (textareaRef.current) {
+          textareaRef.current.style.height = "auto";
+          textareaRef.current.style.height = textareaRef.current.scrollHeight + "px";
+        }
+      };
+
+      recognitionRef.current.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+        setIsListening(false);
+        setInterimText("");
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+        setInterimText("");
+      };
+    }
+  }, []);
+
+  const toggleListening = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      setInterimText("");
+    } else {
+      try {
+        recognitionRef.current?.start();
+        setIsListening(true);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  };
+
+  // Close model menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (modelMenuRef.current && !modelMenuRef.current.contains(event.target)) {
+        setShowModelMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   // Handle prefill from templates
   React.useEffect(() => {
     if (prefillText) {
@@ -199,36 +284,184 @@ export default function InputBox({ onSend, loading, prefillText, onPrefillUsed, 
           ref={textareaRef}
           className="input-textarea"
           rows={1}
-          placeholder="Ask anything DharmaAI..."
+          placeholder="Ask anything Prakarna AI..."
           value={text}
           onChange={handleInput}
           onKeyDown={handleKeyDown}
         />
+
+        {isListening && (
+          <div className="listening-pill" style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: 'var(--surface-2)',
+            borderRadius: '24px',
+            padding: '8px 16px',
+            margin: '8px 0',
+            border: '1px solid var(--border)',
+            gap: '12px',
+            animation: 'fadeIn 0.2s ease-out'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '24px',
+              height: '24px',
+              borderRadius: '50%',
+              background: 'var(--primary)',
+              color: 'white',
+              flexShrink: 0
+            }}>
+              <Mic size={14} />
+            </div>
+
+            <div style={{ flex: 1, minHeight: '30px', minWidth: 0, display: 'flex', alignItems: 'center' }}>
+              <span style={{ 
+                opacity: interimText ? 0.9 : 0.5, 
+                fontStyle: interimText ? 'normal' : 'italic', 
+                color: 'var(--text)', 
+                fontSize: '0.95rem',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}>
+                {interimText || "Listening..."}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+              <button 
+                onClick={toggleListening}
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  border: 'none',
+                  background: 'var(--surface-3)',
+                  color: 'var(--text)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer'
+                }}
+              >
+                <X size={14} />
+              </button>
+              <button 
+                onClick={() => {
+                  toggleListening();
+                  // Optionally Auto-send when clicking check
+                  // handleSend(); 
+                }}
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  border: 'none',
+                  background: 'var(--primary)',
+                  color: 'white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer'
+                }}
+              >
+                <Check size={14} />
+              </button>
+            </div>
+          </div>
+        )}
         
         <div className="input-actions-row">
           <button className="input-action-btn" onClick={() => fileInputRef.current?.click()}>
-            <Paperclip size={14} /> Attach
+            <Paperclip size={14} /> <span className="action-btn-text">Attach</span>
           </button>
           <button className="input-action-btn" onClick={() => fileInputRef.current?.click()}>
-            <Image size={14} /> Upload Media
+            <Image size={14} /> <span className="action-btn-text">Upload Media</span>
           </button>
           
           <span className="upload-limits-tip" style={{ fontSize: "0.68rem", color: "var(--text-muted)", marginLeft: "8px", alignSelf: "center" }}>
             Max 10 files (up to 20MB/file)
           </span>
 
+          <div className="model-selector-wrapper" style={{ marginLeft: "auto", position: "relative" }} ref={modelMenuRef}>
+            <button 
+              className="model-selector-btn" 
+              onClick={() => setShowModelMenu(!showModelMenu)}
+              title="Select AI Model"
+            >
+              <span>{MODELS.find(m => m.id === selectedModel)?.name || "Model"}</span>
+              <ChevronDown size={14} style={{ marginLeft: 4, opacity: 0.7 }} />
+            </button>
+            
+            {showModelMenu && (
+              <div className="model-selector-menu">
+                {MODELS.map((m) => (
+                  <button 
+                    key={m.id} 
+                    className={`model-option-btn ${selectedModel === m.id ? "active" : ""}`}
+                    onClick={() => {
+                      onModelChange(m.id);
+                      setShowModelMenu(false);
+                    }}
+                  >
+                    <div className="model-option-text">
+                      <span className="model-option-name">{m.name}</span>
+                      <span className="model-option-desc">{m.desc}</span>
+                    </div>
+                    {selectedModel === m.id && <Check size={14} className="model-check-icon" />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <button 
+            onClick={toggleListening}
+            className={`mic-btn ${isListening ? "active" : ""}`}
+            style={{ 
+              marginLeft: "8px", 
+              width: "36px", 
+              height: "36px", 
+              borderRadius: "50%", 
+              background: isListening ? "var(--danger)" : "var(--surface-2)", 
+              border: "1px solid var(--border)",
+              color: isListening ? "#fff" : "var(--text)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+              flexShrink: 0
+            }}
+            title="Speech to text"
+          >
+            <Mic size={16} />
+          </button>
+
           <button 
             className={`send-btn ${loading ? "stop-mode" : ""}`} 
             onClick={handleSend} 
             disabled={!text.trim() && !loading && attachments.length === 0}
+            style={{ marginLeft: "8px" }}
           >
             {loading ? <Square size={14} fill="currentColor" /> : <Send size={16} />}
           </button>
         </div>
       </div>
 
-      <div className="context-wrapper">
-        <div className="context-badge" onClick={() => setShowContext(!showContext)} title="View Token Memory Usage">
+      <div
+        className="context-wrapper"
+        onMouseEnter={() => setShowContext(true)}
+        onMouseLeave={() => setShowContext(false)}
+      >
+        <div
+          className="context-badge"
+          onClick={() => setShowContext(prev => !prev)}
+          title="View Token Memory Usage"
+        >
           <svg viewBox="0 0 36 36" className="context-donut">
             <path
               className="donut-bg"

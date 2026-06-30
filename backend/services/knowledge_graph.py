@@ -1,5 +1,5 @@
 """
-Dharma Knowledge Graph (DKG) — DharmaAI v2
+Dharma Knowledge Graph (DKG) — Prakarna AI v2
 ─────────────────────────────────────────────
 Expanded to 50+ nodes. Uses embedding-based concept detection with a
 similarity threshold (default 0.75) to prevent irrelevant context injection.
@@ -46,7 +46,7 @@ class KGEdge:
     description: str = ""
 
 
-class DharmaKnowledgeGraph:
+class PrakarnaKnowledgeGraph:
     """
     Pre-populated knowledge graph of IKS ↔ Modern Law relationships.
     50+ nodes covering IKS concepts, modern law, and their connections.
@@ -423,7 +423,7 @@ class DharmaKnowledgeGraph:
             description="Issue–Dharma–Application of Danda–Resolution. Dharma-based IRAC variant. "
                         "Uses Dharma as applicable rule, Danda as sanction mechanism. "
                         "Bridges IKS and modern Indian law.",
-            era="contemporary", source_text="DharmaAI IKS integration",
+            era="contemporary", source_text="Prakarna AI IKS integration",
             keywords=["idar", "idar analysis", "idar framework", "dharma framework", "iks analysis"]
         ))
 
@@ -693,11 +693,11 @@ class DharmaKnowledgeGraph:
 
 # ── Singleton ──────────────────────────────────────────────────────────────────
 
-_graph: Optional[DharmaKnowledgeGraph] = None
+_graph: Optional[PrakarnaKnowledgeGraph] = None
 
 
-def get_knowledge_graph() -> DharmaKnowledgeGraph:
+def get_knowledge_graph() -> PrakarnaKnowledgeGraph:
     global _graph
     if _graph is None:
-        _graph = DharmaKnowledgeGraph()
+        _graph = PrakarnaKnowledgeGraph()
     return _graph

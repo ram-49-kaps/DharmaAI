@@ -18,11 +18,14 @@ from langchain_core.output_parsers import StrOutputParser
 from services.llm import invoke_with_fallback
 from services.rag_engine import get_rag_engine
 from services.knowledge_graph import get_knowledge_graph
+from services.guardrails import SCOPE_GUARD
 from chains.leveling import get_level_guidance
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You are DharmaAI — an expert educational legal assistant specialising in Indian jurisprudence, constitutional law, and the Indian Knowledge System (IKS).
+SYSTEM_PROMPT = SCOPE_GUARD + """
+
+You are Prakarna AI — an expert educational legal assistant specialising in Indian jurisprudence, constitutional law, and the Indian Knowledge System (IKS).
 
 ## YOUR RULES (FOLLOW STRICTLY)
 
@@ -65,7 +68,7 @@ def build_history_text(history: List[dict]) -> str:
         return "No previous conversation."
     lines = []
     for msg in history:
-        role = "User" if msg.get("role") == "user" else "DharmaAI"
+        role = "User" if msg.get("role") == "user" else "Prakarna AI"
         content = msg.get("content", "")
         if len(content) > 2000:
             content = content[:2000] + "... [truncated]"
@@ -73,7 +76,7 @@ def build_history_text(history: List[dict]) -> str:
     return "\n\n".join(lines)
 
 
-def run_general_chain(message: str, history: List[dict], level: str = None) -> str:
+def run_general_chain(message: str, history: List[dict], level: str = None, stream: bool = False, model_id: str = None):
     """
     RAG-first general Q&A handler.
     Retrieves from all ChromaDB collections before answering.
@@ -99,6 +102,7 @@ def run_general_chain(message: str, history: List[dict], level: str = None) -> s
         return invoke_with_fallback(
             lambda llm: PROMPT | llm | StrOutputParser(),
             inputs,
+            stream=stream, model_id=model_id,
         )
     except Exception as exc:
         logger.error(f"[GeneralQA] Chain failed: {exc}")

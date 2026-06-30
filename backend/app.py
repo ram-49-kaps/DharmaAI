@@ -1,5 +1,7 @@
+import time
+from fastapi.responses import StreamingResponse
 """
-DharmaAI v2 — FastAPI Backend
+Prakarna AI v2 — FastAPI Backend
 RAG-first legal AI for Indian jurisprudence with IKS integration.
 """
 
@@ -29,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 from models.schemas import (
     ChatRequest, ChatResponse, Source, Citation,
-    ThinkingRequest,
+    ThinkingRequest, GreetingRequest, GreetingResponse,
     GlossaryResponse,
     SearchResponse, SearchResult,
     TemplatesResponse, Template,
@@ -58,7 +60,13 @@ from chains.general_qa import run_general_chain
 from chains.follow_up import run_follow_up_chain, is_follow_up
 from chains.conversational import run_conversational_chain
 from chains.thinking import run_thinking_steps_chain
+from chains.document_qa import run_document_qa_chain
 from services.pdf_ingestion import PDFIngestor
+from services.domain_classifier import classify_domain, friendly_redirect, Route
+from services.vision import analyze_image
+from services.llm import invoke_fast
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
 
 
 # ── Startup ───────────────────────────────────────────────────────────────────
@@ -93,12 +101,12 @@ async def lifespan(app: FastAPI):
         logger.error(f"[Startup] RAG engine warning: {exc}")
         logger.warning("[Startup] RAG degraded — continuing without full vector search")
 
-    logger.info("[Startup] DharmaAI v2 ready ✓")
+    logger.info("[Startup] Prakarna AI v2 ready ✓")
     yield
 
 
 app = FastAPI(
-    title="DharmaAI v2 — Legal Chatbot API",
+    title="Prakarna AI v2 — Legal Chatbot API",
     description="RAG-first Indian legal AI with IKS integration",
     version="2.0.0",
     lifespan=lifespan,
@@ -142,6 +150,77 @@ def _sources_to_citations(sources: list) -> list:
     return citations
 
 
+def _sse_event(event_type: str, data=None) -> str:
+    """Serialize one named Server-Sent Event frame."""
+    payload = {"type": event_type}
+    if data is not None:
+        payload["data"] = data
+    return f"event: {event_type}\ndata: {json.dumps(payload, default=str)}\n\n"
+
+
+def _chunk_to_text(chunk) -> str:
+    """Normalize LangChain stream chunks and plain strings into text tokens."""
+    if chunk is None:
+        return ""
+    if isinstance(chunk, str):
+        return chunk
+    content = getattr(chunk, "content", None)
+    if isinstance(content, str):
+        return content
+    if isinstance(chunk, dict):
+        value = chunk.get("content") or chunk.get("text") or chunk.get("data") or ""
+        return value if isinstance(value, str) else str(value)
+    return str(chunk)
+
+
+def _suggestions_for_route(route: str, intent: str, message: str, answer: str, document_type: str = "") -> list[str]:
+    if route == "academic_document":
+        label = document_type.replace("_", " ").strip() or "this document"
+        return [
+            f"Extract the key details from {label}",
+            "How can I use this in my legal education profile?",
+        ]
+    if route == "unrelated":
+        return [
+            "Explain Article 21 of the Constitution",
+            "Help me analyze a legal or academic document",
+        ]
+    if intent != "conversational" and answer:
+        try:
+            from chains.follow_up import generate_suggested_questions
+            suggested = generate_suggested_questions(message, answer)
+            questions = []
+            if suggested:
+                for line in suggested.split("\n"):
+                    line_clean = line.strip()
+                    if line_clean.startswith(("- ", "* ")):
+                        q = line_clean[2:].strip()
+                    elif len(line_clean) > 3 and line_clean[0].isdigit() and line_clean[1:3] == ". ":
+                        q = line_clean[3:].strip()
+                    else:
+                        q = ""
+                    if q:
+                        questions.append(q)
+            if questions:
+                return questions[:2]
+        except Exception as exc:
+            logger.warning("[Suggestions] Generation failed: %s", exc)
+    return []
+
+
+def _document_type_from_context(message: str) -> str:
+    try:
+        marker = "(Image Analysis JSON)"
+        if marker not in message:
+            return ""
+        json_start = message.index("{", message.index(marker))
+        decoder = json.JSONDecoder()
+        data, _ = decoder.raw_decode(message[json_start:])
+        return str(data.get("document_type") or "")
+    except Exception:
+        return ""
+
+
 def _user_profile_from_row(row, user: dict) -> UserProfile:
     if not row:
         return UserProfile(
@@ -174,7 +253,7 @@ def _get_saved_profile(uid: str, user: dict) -> UserProfile:
     return _user_profile_from_row(row, user)
 
 
-async def _extract_attachment_context(files: list[UploadFile]) -> str:
+async def _extract_attachment_context(files: list[UploadFile], user_prompt: str = "") -> str:
     """Extract readable context from chat attachments without storing them permanently."""
     if not files:
         return ""
@@ -202,40 +281,16 @@ async def _extract_attachment_context(files: list[UploadFile]) -> str:
             finally:
                 os.unlink(tmp_path)
         elif content_type.startswith("image/") or lower_name.endswith((".png", ".jpg", ".jpeg", ".webp")):
-            import io
-            from PIL import Image
-            import pytesseract
-
-            # Ensure pytesseract can find tesseract on macOS / common paths
-            tesseract_paths = [
-                '/opt/homebrew/bin/tesseract',
-                '/usr/local/bin/tesseract',
-                '/usr/bin/tesseract'
-            ]
-            for path in tesseract_paths:
-                if os.path.exists(path):
-                    pytesseract.pytesseract.tesseract_cmd = path
-                    break
-
             try:
-                image = Image.open(io.BytesIO(content))
-                extracted_text = pytesseract.image_to_string(image)
-                extracted_text = (extracted_text or "").strip()
-                
-                if extracted_text:
-                    if len(extracted_text) > 12000:
-                        extracted_text = extracted_text[:12000] + "\n...[OCR text truncated]"
-                    sections.append(
-                        f"Attachment: {filename} (Image OCR Text):\n{extracted_text}"
-                    )
-                else:
-                    sections.append(
-                        f"Attachment: {filename} (Image):\n[No text could be extracted or identified in this image via OCR.]"
-                    )
-            except Exception as e:
-                logger.error(f"OCR failed for {filename}: {e}", exc_info=True)
+                analysis = analyze_image(content, filename, content_type, user_prompt=user_prompt)
                 sections.append(
-                    f"Attachment: {filename} (Image):\n[Error performing OCR extraction: {str(e)}]"
+                    f"Attachment: {filename} (Image Analysis JSON)\n"
+                    f"{json.dumps(analysis, ensure_ascii=False, indent=2)}"
+                )
+            except Exception as e:
+                logger.error(f"Image analysis failed for {filename}: {e}", exc_info=True)
+                sections.append(
+                    f"Attachment: {filename} (Image):\n[Error performing image analysis: {str(e)}]"
                 )
         elif content_type.startswith("text/") or lower_name.endswith(".txt"):
             text = content.decode("utf-8", errors="replace")
@@ -266,6 +321,46 @@ async def get_thinking_steps(req: ThinkingRequest, user: dict = Depends(get_curr
         ]
 
 
+GREETING_PROMPT = ChatPromptTemplate.from_messages([
+    ("system", """You write one short homepage greeting for Prakarna AI.
+Prakarna AI helps with Indian law, IKS jurisprudence, legal research, and legal education.
+Return exactly one catchy question or sentence, maximum 20 words.
+Make it professional, friendly, and personalized. Never use emojis. Never sound like advertising.
+Feel free to use natural time-based greetings like "Good morning", "Good evening", or context-aware phrases like "Welcome back".
+Context to incorporate (if applicable):
+- If it's a first visit, welcome them warmly.
+- If they have a recent topic, you may casually reference returning to it.
+- NEVER repeat the exact last greeting they received.
+Base the greeting on the provided time, day of the week, user's first name, and context."""),
+    ("human", "First Name: {first_name}\nCurrent Time: {current_time}\nDay of week: {day_of_week}\nFirst Visit: {is_first_visit}\nRecent Topic: {recent_topic}\nLast Greeting: {last_greeting}"),
+])
+
+
+@app.post("/api/greeting", response_model=GreetingResponse)
+async def generate_greeting(req: GreetingRequest, user: dict = Depends(get_current_user)):
+    """Generate one cached-on-frontend domain-specific greeting."""
+    fallback_name = req.first_name or user.get("name") or user.get("email", "").split("@")[0] or "there"
+    fallback_greeting = f"Welcome back, {fallback_name}. What legal topic would you like to explore today?"
+    try:
+        greeting = invoke_fast(
+            lambda llm: GREETING_PROMPT | llm | StrOutputParser(),
+            {
+                "first_name": fallback_name,
+                "current_time": req.current_time or "unknown",
+                "day_of_week": req.day_of_week or "unknown",
+                "is_first_visit": "Yes" if req.is_first_visit else "No",
+                "recent_topic": req.recent_topic or "None",
+                "last_greeting": req.last_greeting or "None",
+            },
+        ).strip().strip('"')
+        if not greeting or len(greeting) > 120:
+            raise ValueError("Greeting was empty or too long")
+        return GreetingResponse(greeting=greeting)
+    except Exception as exc:
+        logger.error("[Greeting] Generation failed: %s", exc)
+        return GreetingResponse(greeting=fallback_greeting)
+
+
 async def _chat_request_from_request(request: Request) -> ChatRequest:
     content_type = request.headers.get("content-type", "")
     if content_type.startswith("multipart/form-data"):
@@ -280,7 +375,7 @@ async def _chat_request_from_request(request: Request) -> ChatRequest:
         files = []
         for key in ("files", "file", "attachments"):
             files.extend([item for item in form.getlist(key) if hasattr(item, "filename") and hasattr(item, "read")])
-        attachment_context = await _extract_attachment_context(files)
+        attachment_context = await _extract_attachment_context(files, user_prompt=message)
         if attachment_context:
             message = (
                 f"{message}\n\n"
@@ -303,126 +398,182 @@ async def _chat_request_from_request(request: Request) -> ChatRequest:
 
 # ── Chat ──────────────────────────────────────────────────────────────────────
 
-@app.post("/api/chat", response_model=ChatResponse)
+@app.post("/api/chat")
 async def chat(request: Request, user: dict = Depends(get_current_user)):
-    """RAG-first chat endpoint. All queries retrieve before generating."""
+    """RAG-first chat endpoint. All queries retrieve before generating (SSE stream)."""
     req = await _chat_request_from_request(request)
-    try:
-        history_dicts = [m.model_dump() for m in req.history]
-        level = req.level or _get_saved_profile(user.get("uid", "anonymous"), user).level
-
-        # Check for follow-up first (overrides router for continuation queries)
-        if is_follow_up(req.message) and history_dicts:
-            intent = "follow_up"
-            answer = run_follow_up_chain(req.message, history_dicts, level=level)
-        else:
-            intent = detect_intent(req.message)
-
-            if intent == "definition":
-                answer = run_definition_chain(req.message, level=level)
-            elif intent == "case_lookup":
-                answer = run_caselaw_chain(req.message, level=level)
-            elif intent == "statute_lookup":
-                answer = run_statute_chain(req.message, level=level)
-            elif intent == "irac_analysis":
-                answer = run_irac_chain(req.message, level=level)
-            elif intent == "filac_analysis":
-                answer = run_filac_chain(req.message, level=level)
-            elif intent == "idar_analysis":
-                answer = run_idar_chain(req.message, level=level)
-            elif intent == "comparative":
-                answer = run_general_chain(req.message, history_dicts, level=level)
-            elif intent == "conversational":
-                answer = run_conversational_chain(req.message)
-            else:
-                answer = run_general_chain(req.message, history_dicts, level=level)
-
-        # Retrieve sources for the response panel
-        sources = []
-        citations = []
-        
-        # Bypass heavy RAG retrieval if it's just a conversational greeting
-        if intent != "conversational":
-            engine = get_rag_engine()
-            _, raw_results = engine.retrieve(req.message, k_final=8)
-            seen = set()
-            for r in raw_results:
-                meta = r.get("metadata", {})
-                title = meta.get("title", "")
-                if title in seen:
-                    continue
-                seen.add(title)
-                sources.append(Source(
-                    title=title,
-                    type=meta.get("source_type", meta.get("category", "statute")).lower(),
-                    citation=meta.get("citation", ""),
-                    page=meta.get("page", ""),
-                    excerpt=r.get("content", "")[:200],
-                ))
-
-            citations = _sources_to_citations(sources)
-
-        # Generate suggested follow-up questions
-        suggested_questions = []
-        if intent != "conversational" and answer:
-            from chains.follow_up import generate_suggested_questions
-            suggested = generate_suggested_questions(req.message, answer)
-            if suggested:
-                for line in suggested.split("\n"):
-                    line_clean = line.strip()
-                    if line_clean.startswith(("- ", "* ")):
-                        q = line_clean[2:].strip()
-                        if q:
-                            suggested_questions.append(q)
-                    elif len(line_clean) > 3 and line_clean[0].isdigit() and line_clean[1:3] == ". ":
-                        q = line_clean[3:].strip()
-                        if q:
-                            suggested_questions.append(q)
-                
-                # Limit to exactly 2 questions as per specifications
-                suggested_questions = suggested_questions[:2]
-
-        uid = user.get("uid", "anonymous")
-        if req.session_id:
-            _save_message(req.session_id, uid, "user", req.message)
-            _save_message(req.session_id, uid, "assistant", answer)
-
-        return ChatResponse(
-            intent=intent, 
-            answer=answer, 
-            sources=sources, 
-            citations=citations,
-            suggested_questions=suggested_questions
-        )
-
-    except Exception as exc:
-        logger.error(f"[Chat] Error: {exc}", exc_info=True)
-        exc_str = str(exc)
-        
-        # Check for specific rate limit indicators
-        is_rate_limited = any(x in exc_str for x in ["429", "RESOURCE_EXHAUSTED", "Rate Limited"])
-        
-        if is_rate_limited:
-            # DharmaAI Lite Mode — don't crash, just inform.
-            lite_answer = (
-                "**[DharmaAI Lite Mode Active]**\n\n"
-                "I am currently experiencing extremely high traffic or API rate limits (likely due to background database seeding). "
-                "While I cannot perform a deep legal retrieval at this exact second, I can tell you that I've received your query: "
-                f"\"{req.message[:50]}...\"\n\n"
-                "Please wait about 60 seconds for the quota to reset and try again for a full detailed analysis."
-            )
-            return ChatResponse(
-                intent="general_qa",
-                answer=lite_answer,
-                sources=[],
-                citations=[]
-            )
+    
+    async def event_generator():
+        try:
+            history_dicts = [m.model_dump() for m in req.history]
+            level = req.level or _get_saved_profile(user.get("uid", "anonymous"), user).level
+            uid = user.get("uid", "anonymous")
             
-        raise HTTPException(
-            status_code=500,
-            detail="An internal error occurred while processing your request. Please try again.",
-        )
+            response_id = str(uuid.uuid4())
+            timestamp = int(time.time() * 1000)
+            has_attachment = "--- ATTACHMENT DETAILS ---" in req.message
+            domain = classify_domain(req.message, has_attachment=has_attachment)
 
+            # 1. Determine route and intent.
+            if domain.route == Route.ACADEMIC_DOCUMENT:
+                intent = "document_qa"
+            elif domain.route == Route.UNRELATED:
+                intent = "redirect"
+            elif domain.route == Route.CONVERSATION:
+                intent = "conversational"
+            elif is_follow_up(req.message) and history_dicts:
+                intent = "follow_up"
+            else:
+                intent = detect_intent(req.message)
+
+            # 2. Retrieve sources before metadata so the UI can sync immediately.
+            sources = []
+            citations = []
+            if domain.route == Route.LEGAL and intent != "conversational":
+                engine = get_rag_engine()
+                _, raw_results = engine.retrieve(req.message, k_final=8)
+                seen = set()
+                for r in raw_results:
+                    meta = r.get("metadata", {})
+                    title = meta.get("title", "")
+                    if title in seen:
+                        continue
+                    seen.add(title)
+                    sources.append(Source(
+                        title=title,
+                        type=meta.get("source_type", meta.get("category", "statute")).lower(),
+                        citation=meta.get("citation", ""),
+                        page=meta.get("page", ""),
+                        excerpt=r.get("content", "")[:200],
+                    ))
+                citations = _sources_to_citations(sources)
+
+            activity_by_intent = {
+                "follow_up": "Reading follow_up.py",
+                "definition": "Reading definition.py",
+                "case_lookup": "Reading caselaw.py",
+                "statute_lookup": "Reading statute.py",
+                "irac_analysis": "Reading irac.py",
+                "filac_analysis": "Reading filac.py",
+                "idar_analysis": "Reading idar.py",
+                "comparative": "Reading general_qa.py",
+                "conversational": "Reading conversational.py",
+                "document_qa": "Reading uploaded document",
+                "redirect": "Checking Prakarna AI scope",
+            }
+
+            # 3. Metadata first: IDs, routing, sources, and initial live activity.
+            yield _sse_event("metadata", {
+                "intent": intent,
+                "sources": [s.model_dump() for s in sources],
+                "response_id": response_id,
+                "timestamp": timestamp,
+                "route": domain.route.value,
+                "route_reason": domain.reason,
+                "route_confidence": domain.confidence,
+                "route_source": domain.source,
+                "activity": activity_by_intent.get(intent, "Reading general_qa.py"),
+            })
+
+            # 4. Determine which chain to stream.
+            if domain.route == Route.UNRELATED:
+                chunk_gen = (friendly_redirect(req.message),)
+            elif domain.route == Route.ACADEMIC_DOCUMENT:
+                chunk_gen = run_document_qa_chain(req.message, req.message, stream=True, model_id=req.model_id)
+            elif intent == "follow_up":
+                chunk_gen = run_follow_up_chain(req.message, history_dicts, level=level, model_id=req.model_id, stream=True)
+            elif intent == "definition":
+                chunk_gen = run_definition_chain(req.message, level=level, model_id=req.model_id, stream=True)
+            elif intent == "case_lookup":
+                chunk_gen = run_caselaw_chain(req.message, level=level, model_id=req.model_id, stream=True)
+            elif intent == "statute_lookup":
+                chunk_gen = run_statute_chain(req.message, level=level, model_id=req.model_id, stream=True)
+            elif intent == "irac_analysis":
+                chunk_gen = run_irac_chain(req.message, level=level, model_id=req.model_id, stream=True)
+            elif intent == "filac_analysis":
+                chunk_gen = run_filac_chain(req.message, level=level, model_id=req.model_id, stream=True)
+            elif intent == "idar_analysis":
+                chunk_gen = run_idar_chain(req.message, level=level, model_id=req.model_id, stream=True)
+            elif intent == "comparative":
+                chunk_gen = run_general_chain(req.message, history_dicts, level=level, model_id=req.model_id, stream=True)
+            elif intent == "conversational":
+                chunk_gen = run_conversational_chain(req.message, model_id=req.model_id, stream=True)
+            else:
+                chunk_gen = run_general_chain(req.message, history_dicts, level=level, model_id=req.model_id, stream=True)
+
+            # 5. Stream answer tokens.
+            full_answer = ""
+            chunks = (chunk_gen,) if isinstance(chunk_gen, str) else chunk_gen
+            for chunk in chunks:
+                if await request.is_disconnected():
+                    logger.info("[Chat] Client disconnected; stopping stream")
+                    return
+                
+                # Check for auto-fallback event from LLM
+                if isinstance(chunk, dict) and "__fallback__" in chunk:
+                    yield _sse_event("info", {"type": "fallback", "model": chunk["__name__"]})
+                    continue
+
+                token = _chunk_to_text(chunk)
+                if not token:
+                    continue
+                full_answer += token
+                yield _sse_event("token", token)
+            
+            # 6. Save chat to database (if required).
+            if req.session_id:
+                _save_message(req.session_id, uid, "user", req.message)
+                _save_message(req.session_id, uid, "assistant", full_answer)
+
+            # 7. Citations after tokens.
+            yield _sse_event("citations", [c.model_dump() for c in citations])
+
+            # 8. Suggestions after citations.
+            suggested_questions = _suggestions_for_route(
+                domain.route,
+                intent,
+                req.message,
+                full_answer,
+                document_type=_document_type_from_context(req.message),
+            )
+            yield _sse_event("suggestions", suggested_questions)
+            
+            # 9. Done event
+            yield _sse_event("done", {
+                "response_id": response_id,
+                "answer_length": len(full_answer),
+            })
+
+        except Exception as exc:
+            logger.error(f"[Chat] Error: {exc}", exc_info=True)
+            exc_str = str(exc)
+            is_rate_limited = any(x in exc_str for x in ["429", "RESOURCE_EXHAUSTED", "Rate Limited"])
+            if is_rate_limited:
+                lite_answer = "**[Prakarna AI Lite Mode Active]**\n\nI am currently experiencing extremely high traffic. Please wait about 60 seconds and try again."
+                fallback_id = str(uuid.uuid4())
+                yield _sse_event("metadata", {
+                    "intent": "general_qa",
+                    "sources": [],
+                    "response_id": fallback_id,
+                    "timestamp": int(time.time() * 1000),
+                    "activity": "Reading general_qa.py",
+                })
+                yield _sse_event("token", lite_answer)
+                yield _sse_event("citations", [])
+                yield _sse_event("suggestions", [])
+                yield _sse_event("done", {"response_id": fallback_id, "answer_length": len(lite_answer)})
+            else:
+                yield _sse_event("error", "An internal error occurred while processing your request. Please try again.")
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 
@@ -668,7 +819,7 @@ async def health():
 
     return {
         "status": "ok",
-        "model": "DharmaAI v2.0",
+        "model": "Prakarna AI v2.0",
         "knowledge_graph": {
             "nodes": summary["total_nodes"],
             "edges": summary["total_edges"],

@@ -3,6 +3,7 @@ import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../firebase/config";
 import { Scale, ScrollText, BrainCircuit, BookOpen, GraduationCap, Mail } from "lucide-react";
 import Logo from "./Logo";
+import BrandText from "./BrandText";
 import AuthShowcase from "./AuthShowcase";
 
 export default function Login({ onSwitchToSignUp }) {
@@ -43,18 +44,15 @@ export default function Login({ onSwitchToSignUp }) {
       <div className="auth-left">
         <div className="auth-left-inner">
           {/* Brand */}
-          <div className="auth-brand-top">
-            <Logo size={28} />
-            <span className="auth-brand-name">DharmaAI</span>
+          <div className="auth-brand-top" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", marginBottom: "1.5rem" }}>
+            <Logo size={32} variant="minimal" />
+            <BrandText style={{ fontSize: "1.3rem", paddingTop: "4px" }} />
           </div>
 
           {/* Heading */}
-          <div className="auth-heading">
-            <div className="auth-icon-wrap">
-              <Logo size={36} />
-            </div>
-            <h1>AI-Powered Legal Research</h1>
-            <p className="auth-heading-sub">
+          <div className="auth-heading" style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "2rem" }}>
+            <h1 style={{ marginTop: 0, marginBottom: "8px" }}>AI-Powered Legal Research</h1>
+            <p className="auth-heading-sub" style={{ margin: 0 }}>
               <span className="auth-highlight">Grounded in Indian Jurisprudence</span>
               {" "}& the Indian Knowledge System
             </p>
@@ -122,13 +120,13 @@ export default function Login({ onSwitchToSignUp }) {
           </p>
 
           <p style={{
-            fontSize: "0.72rem",
-            color: "var(--text-muted, #6b7280)",
+            fontSize: "0.75rem",
+            color: "var(--text)",
             textAlign: "center",
             marginTop: "1.5rem",
-            opacity: 0.85
+            fontWeight: 500
           }}>
-            Developed by <strong>Ram Kapadia</strong>, <strong>Arnav Narula</strong> & <strong>Saanvi Aggarwal</strong>
+            Developed by <span style={{ color: "var(--primary)", fontWeight: 700 }}>Ram Kapadia</span>, <span style={{ color: "var(--primary)", fontWeight: 700 }}>Arnav Narula</span>
           </p>
         </div>
       </div>

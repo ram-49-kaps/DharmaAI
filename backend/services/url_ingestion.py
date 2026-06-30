@@ -1,5 +1,5 @@
 """
-URL ingestion pipeline for DharmaAI v2.
+URL ingestion pipeline for Prakarna AI v2.
 Uses trafilatura for high-quality main text extraction.
 """
 

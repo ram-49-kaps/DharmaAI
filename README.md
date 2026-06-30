@@ -1,4 +1,4 @@
-# ⚖️ DharmaAI 3.0 — Indian Legal AI Platform (Dharma3.0)
+# ⚖️ Prakarna AI 3.0 — Indian Legal AI Platform
 
 RAG-first legal AI chatbot for Indian jurisprudence with deep IKS (Indian Knowledge System) integration.
 
