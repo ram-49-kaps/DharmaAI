@@ -48,7 +48,7 @@ from db.database import init_db, get_supabase
 from db.seed import seed, seed_chromadb
 from services.rag_engine import get_rag_engine
 from services.knowledge_graph import get_knowledge_graph
-from auth.firebase_auth import init_firebase, get_current_user, get_admin_user
+from auth.firebase_auth import init_firebase, get_current_user, get_admin_user, get_optional_user
 from chains.router import detect_intent
 from chains.definition import run_definition_chain
 from chains.caselaw import run_caselaw_chain
@@ -337,7 +337,7 @@ Base the greeting on the provided time, day of the week, user's first name, and 
 
 
 @app.post("/api/greeting", response_model=GreetingResponse)
-async def generate_greeting(req: GreetingRequest, user: dict = Depends(get_current_user)):
+async def generate_greeting(req: GreetingRequest, user: dict = Depends(get_optional_user)):
     """Generate one cached-on-frontend domain-specific greeting."""
     fallback_name = req.first_name or user.get("name") or user.get("email", "").split("@")[0] or "there"
     fallback_greeting = f"Welcome back, {fallback_name}. What legal topic would you like to explore today?"

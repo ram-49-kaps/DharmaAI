@@ -3,7 +3,7 @@ import { AlertTriangle, Menu, PanelLeft, Share2, Copy, Check, X } from "lucide-r
 import "./App.css";
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import { setAuthToken, sendMessage, shareChat, getThinkingSteps, getGreeting } from "./services/api";
+import { setAuthToken, sendMessage, shareChat, getThinkingSteps, getGreeting, getSessions } from "./services/api";
 import Login from "./components/Login";
 import SignUp from "./components/SignUp";
 import Sidebar from "./components/Sidebar";

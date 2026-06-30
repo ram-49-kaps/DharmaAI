@@ -107,6 +107,15 @@ async def get_current_user(
         )
 
 
+async def get_optional_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(_security),
+) -> dict:
+    """Dependency for endpoints where auth is optional."""
+    try:
+        return await get_current_user(credentials)
+    except HTTPException:
+        return {}
+
 async def get_admin_user(user: dict = Depends(get_current_user)) -> dict:
     """Dependency that checks user is in ADMIN_USER_IDS or ADMIN_EMAILS."""
     admin_ids_raw = os.getenv("ADMIN_USER_IDS", "")
